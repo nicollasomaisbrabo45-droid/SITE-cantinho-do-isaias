@@ -112,6 +112,13 @@ async function handleAuth() {
         }
       }
 
+      // Descobre se o novo usuário ganhou o cargo de admin
+      let userRole = 'cliente';
+      if (data && data.user) {
+        const { data: profileData } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
+        if (profileData) userRole = profileData.role;
+      }
+
       showToast('✅ Conta criada! Você já pode entrar.');
       toggleAuthMode();
     } else {
@@ -121,11 +128,17 @@ async function handleAuth() {
       });
       if (error) throw error;
       
+      // Busca a role no banco
+      let userRole = 'cliente';
+      const { data: profileData } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
+      if (profileData) userRole = profileData.role;
+      
       currentUser = {
         id: data.user.id,
         name: data.user.user_metadata?.name || name,
         email: data.user.email,
-        reconhecimento_id: data.user.user_metadata?.reconhecimento_id || generateUniqueId(email)
+        reconhecimento_id: data.user.user_metadata?.reconhecimento_id || generateUniqueId(email),
+        role: userRole
       };
       localStorage.setItem('ciUser', JSON.stringify(currentUser));
       updateUserUI();
@@ -160,13 +173,23 @@ async function logout() {
 function updateUserUI() {
   const nameEl = document.getElementById('navUserName');
   const avatarEl = document.getElementById('navAvatar');
+  const gearBtn = document.getElementById('adminGearBtn');
   
   if (nameEl) {
     if (currentUser) {
-      nameEl.innerHTML = `${currentUser.name} <span style="font-size: 0.8em; opacity: 0.8; margin-left: 5px;">${currentUser.reconhecimento_id}</span>`;
+      const adminTag = currentUser.role === 'admin'
+        ? '<span style="color: gold; font-weight: bold; margin-left: 5px; font-size: 0.75em;">★ ADMIN</span>'
+        : '';
+      nameEl.innerHTML = `${currentUser.name} <span style="font-size: 0.8em; opacity: 0.8; margin-left: 5px;">${currentUser.reconhecimento_id}</span>${adminTag}`;
     } else {
       nameEl.textContent = 'Entrar';
     }
   }
+
+  // Mostra ou oculta o botão de engrenagem de acordo com o cargo
+  if (gearBtn) {
+    gearBtn.style.display = (currentUser && currentUser.role === 'admin') ? 'flex' : 'none';
+  }
+
   if (avatarEl) avatarEl.textContent = currentUser ? currentUser.name[0].toUpperCase() : '👤';
 }

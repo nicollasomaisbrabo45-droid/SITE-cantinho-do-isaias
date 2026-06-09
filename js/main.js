@@ -17,11 +17,21 @@ window.addEventListener('load', async () => {
   if (supabase) {
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
+      
       if (session) {
+        // Busca informações complementares na tabela profiles (role e id_reconhecimento)
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, id_reconhecimento')
+          .eq('id', session.user.id)
+          .single();
+
         currentUser = {
           id: session.user.id,
           name: session.user.user_metadata?.name || session.user.email.split('@')[0],
-          email: session.user.email
+          email: session.user.email,
+          role: profile?.role || 'cliente',
+          reconhecimento_id: profile?.id_reconhecimento || session.user.user_metadata?.reconhecimento_id
         };
         localStorage.setItem('ciUser', JSON.stringify(currentUser));
       } else {

@@ -3,14 +3,18 @@
 -- Copie todo este código, cole no SQL Editor do Supabase e clique em RUN!
 -- ==============================================================================
 
--- 1. TABELA DE PERFIS DE USUÁRIO (COM ID DE RECONHECIMENTO)
+-- 1. TABELA DE PERFIS DE USUÁRIO (COM ID DE RECONHECIMENTO E CARGOS)
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   nome TEXT,
   id_reconhecimento VARCHAR(8) UNIQUE NOT NULL,
+  role TEXT DEFAULT 'cliente', -- "cliente" ou "admin"
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Caso a tabela já exista de antes, adiciona a coluna de role
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'cliente';
 
 -- Habilitar RLS na tabela profiles
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -25,7 +29,22 @@ CREATE POLICY "Usuários podem atualizar próprio perfil" ON public.profiles FOR
 CREATE POLICY "Usuários podem criar próprio perfil" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- ==============================================================================
--- 2. FUNÇÃO E TRIGGER PARA GERAR O ID DE RECONHECIMENTO (#TDS1828)
+-- 2. FUNÇÕES DE UTILIDADE E SEGURANÇA (ADMIN)
+-- ==============================================================================
+
+-- Função para verificar de forma segura se quem está acessando é um admin
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN AS $$
+DECLARE
+  user_role TEXT;
+BEGIN
+  SELECT role INTO user_role FROM public.profiles WHERE id = auth.uid();
+  RETURN user_role = 'admin';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ==============================================================================
+-- 3. FUNÇÃO E TRIGGER PARA GERAR O ID DE RECONHECIMENTO (#TDS1828)
 -- ==============================================================================
 
 CREATE OR REPLACE FUNCTION public.generate_reconhecimento_id(user_email TEXT)
@@ -62,12 +81,14 @@ LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, nome, id_reconhecimento)
+  INSERT INTO public.profiles (id, email, nome, id_reconhecimento, role)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'name', SPLIT_PART(NEW.email, '@', 1)),
-    COALESCE(NEW.raw_user_meta_data->>'reconhecimento_id', public.generate_reconhecimento_id(NEW.email))
+    COALESCE(NEW.raw_user_meta_data->>'reconhecimento_id', public.generate_reconhecimento_id(NEW.email)),
+    -- Lógica para dar o cargo de admin automaticamente ao email principal
+    CASE WHEN NEW.email = 'nicollasomaisbrabo45@gmail.com' THEN 'admin' ELSE 'cliente' END
   );
   RETURN NEW;
 END;
@@ -175,3 +196,10 @@ CREATE POLICY "Usuários veem os itens dos seus pedidos" ON public.order_items F
 CREATE POLICY "Permitir inserir itens" ON public.order_items FOR INSERT WITH CHECK (
   EXISTS (SELECT 1 FROM public.orders WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid())
 );
+
+-- ==============================================================================
+-- 5. ATUALIZAÇÃO MANUAL PARA O PRIMEIRO ADMIN (Caso a conta já tenha sido criada)
+-- ==============================================================================
+UPDATE public.profiles 
+SET role = 'admin' 
+WHERE email = 'nicollasomaisbrabo45@gmail.com';

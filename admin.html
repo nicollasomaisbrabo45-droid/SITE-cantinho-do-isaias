@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gerenciamento | Cantinho do Isaias</title>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/variables.css"/>
+<link rel="stylesheet" href="css/base.css"/>
+<link rel="stylesheet" href="css/navbar.css"/>
+<style>
+  /* ── ADMIN LAYOUT ── */
+  body { background: #0d0d0f; min-height: 100vh; }
+
+  .admin-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* ── ACESSO NEGADO ── */
+  .access-denied {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    gap: 1.5rem;
+    text-align: center;
+  }
+  .access-denied .lock-icon {
+    font-size: 5rem;
+    animation: shake 0.5s ease infinite alternate;
+  }
+  @keyframes shake {
+    from { transform: rotate(-8deg); }
+    to   { transform: rotate(8deg); }
+  }
+  .access-denied h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    color: #ff4545;
+    letter-spacing: 2px;
+  }
+  .access-denied p { color: var(--ash); font-size: 1rem; }
+  .access-denied .btn-back {
+    background: var(--fire);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 999px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+    text-decoration: none;
+  }
+  .access-denied .btn-back:hover { opacity: 0.85; transform: scale(1.04); }
+
+  /* ── HEADER ── */
+  .admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+  .admin-header-left h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    color: #fff;
+    letter-spacing: 2px;
+    line-height: 1;
+  }
+  .admin-header-left p {
+    color: var(--ash);
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+  }
+  .admin-badge {
+    background: linear-gradient(135deg, #f5c518, #e6a800);
+    color: #0d0d0f;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* ── STATS CARDS ── */
+  .admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .stat-card {
+    background: #18181c;
+    border: 1px solid #2a2a30;
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card:hover { border-color: var(--fire); transform: translateY(-2px); }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--fire);
+    border-radius: 16px 16px 0 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .stat-card:hover::before { opacity: 1; }
+  .stat-icon { font-size: 1.75rem; }
+  .stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: #fff;
+    line-height: 1;
+  }
+  .stat-label { font-size: 0.8rem; color: var(--ash); font-weight: 500; }
+  .stat-trend { font-size: 0.75rem; color: #4caf50; font-weight: 600; }
+
+  /* ── SECTION ── */
+  .admin-section {
+    background: #18181c;
+    border: 1px solid #2a2a30;
+    border-radius: 20px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .admin-section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .admin-section-title span { color: var(--ash); font-weight: 400; font-size: 0.85rem; }
+
+  /* ── ACTIONS GRID ── */
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.85rem;
+  }
+  .action-card {
+    background: #111115;
+    border: 1px solid #2a2a30;
+    border-radius: 14px;
+    padding: 1.1rem 1.25rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    text-decoration: none;
+    color: inherit;
+  }
+  .action-card:hover {
+    border-color: var(--fire);
+    background: #1a1a1f;
+    transform: translateY(-1px);
+  }
+  .action-card-icon {
+    font-size: 1.4rem;
+    width: 42px;
+    height: 42px;
+    background: #222228;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .action-card-text { display: flex; flex-direction: column; gap: 0.1rem; }
+  .action-card-label { font-weight: 700; font-size: 0.9rem; color: #fff; }
+  .action-card-desc { font-size: 0.75rem; color: var(--ash); }
+
+  /* ── COMING SOON TAG ── */
+  .tag-soon {
+    margin-left: auto;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    background: #2a2a30;
+    color: var(--ash);
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+  }
+
+  /* ── QUICK TABLE ── */
+  .admin-table { width: 100%; border-collapse: collapse; }
+  .admin-table th {
+    text-align: left;
+    padding: 0.6rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--ash);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #2a2a30;
+  }
+  .admin-table td {
+    padding: 0.9rem 1rem;
+    font-size: 0.875rem;
+    color: #ccc;
+    border-bottom: 1px solid #1e1e24;
+  }
+  .admin-table tr:last-child td { border-bottom: none; }
+  .admin-table tr:hover td { background: #111115; }
+
+  .status-pill {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .status-pill.novo { background: #1e3a5f; color: #64b5f6; }
+  .status-pill.preparando { background: #3d2800; color: #ffb74d; }
+  .status-pill.entregando { background: #1b3a2a; color: #81c784; }
+  .status-pill.concluido { background: #1e2e1e; color: #a5d6a7; }
+
+  /* ── NAV VOLTAR ── */
+  .admin-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--ash);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 1.5rem;
+    transition: color 0.2s;
+  }
+  .admin-back-link:hover { color: #fff; }
+
+  /* ── LOADING ── */
+  #adminLoading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 1rem;
+    color: var(--ash);
+  }
+  .spin {
+    width: 40px; height: 40px;
+    border: 3px solid #2a2a30;
+    border-top-color: var(--fire);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── GEAR ANIMATION ── */
+  .gear-spin { display: inline-block; animation: spin 3s linear infinite; }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" role="navigation" aria-label="Menu principal">
+  <a href="index.html" class="nav-logo" id="navLogo">
+    <div class="nav-logo-stamp">🍔</div>
+    <div>
+      <div class="nav-logo-text">Cantinho do <em>Isaias</em></div>
+      <div class="nav-logo-sub">Painel de Gerenciamento</div>
+    </div>
+  </a>
+  <div class="nav-actions">
+    <button class="nav-btn admin-gear-btn" id="adminGearBtn" style="display:flex; background: rgba(245,197,24,0.15); color: gold;" title="Você está no painel admin" aria-label="Painel admin">
+      ⚙️
+    </button>
+    <button class="nav-user" id="userBtn" onclick="logout()" aria-label="Sair da conta">
+      <div class="avatar" id="navAvatar">👤</div>
+      <span id="navUserName">Sair</span>
+    </button>
+  </div>
+</nav>
+
+<!-- CONTEÚDO PRINCIPAL -->
+<div class="admin-wrapper">
+
+  <!-- Loading state enquanto verifica o cargo -->
+  <div id="adminLoading">
+    <div class="spin"></div>
+    <span>Verificando permissões…</span>
+  </div>
+
+  <!-- Acesso Negado (oculto por padrão) -->
+  <div id="accessDenied" class="access-denied" style="display:none">
+    <div class="lock-icon">🔒</div>
+    <h2>Acesso Restrito</h2>
+    <p>Você não tem permissão para acessar esta página.<br>Apenas administradores podem entrar aqui.</p>
+    <a href="index.html" class="btn-back">← Voltar ao Site</a>
+  </div>
+
+  <!-- Painel Admin (oculto por padrão) -->
+  <div id="adminPanel" style="display:none">
+    <a href="index.html" class="admin-back-link">← Voltar ao site</a>
+
+    <div class="admin-header">
+      <div class="admin-header-left">
+        <h1><span class="gear-spin">⚙️</span> Gerenciamento</h1>
+        <p>Bem-vindo ao painel de controle, <strong id="adminName">Admin</strong></p>
+      </div>
+      <span class="admin-badge">★ Administrador</span>
+    </div>
+
+    <!-- STATS -->
+    <div class="admin-stats" id="adminStats">
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-value" id="statPedidos">—</div>
+        <div class="stat-label">Pedidos Hoje</div>
+        <div class="stat-trend">↑ Carregando…</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value" id="statClientes">—</div>
+        <div class="stat-label">Total de Clientes</div>
+        <div class="stat-trend">↑ Carregando…</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🍔</div>
+        <div class="stat-value" id="statItens">—</div>
+        <div class="stat-label">Itens no Cardápio</div>
+        <div class="stat-trend">↑ Ativo</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-value" id="statAval">—</div>
+        <div class="stat-label">Avaliações</div>
+        <div class="stat-trend">↑ Carregando…</div>
+      </div>
+    </div>
+
+    <!-- AÇÕES RÁPIDAS -->
+    <div class="admin-section">
+      <div class="admin-section-title">⚡ Ações Rápidas</div>
+      <div class="actions-grid">
+        <div class="action-card" onclick="adminAction('cardapio')">
+          <div class="action-card-icon">🍔</div>
+          <div class="action-card-text">
+            <div class="action-card-label">Gerenciar Cardápio</div>
+            <div class="action-card-desc">Adicionar, editar ou remover itens</div>
+          </div>
+          <span class="tag-soon">Em breve</span>
+        </div>
+        <div class="action-card" onclick="adminAction('pedidos')">
+          <div class="action-card-icon">📦</div>
+          <div class="action-card-text">
+            <div class="action-card-label">Ver Pedidos</div>
+            <div class="action-card-desc">Acompanhar e gerenciar pedidos</div>
+          </div>
+          <span class="tag-soon">Em breve</span>
+        </div>
+        <div class="action-card" onclick="adminAction('usuarios')">
+          <div class="action-card-icon">👥</div>
+          <div class="action-card-text">
+            <div class="action-card-label">Usuários</div>
+            <div class="action-card-desc">Ver contas e gerenciar cargos</div>
+          </div>
+          <span class="tag-soon">Em breve</span>
+        </div>
+        <div class="action-card" onclick="adminAction('promos')">
+          <div class="action-card-icon">🔥</div>
+          <div class="action-card-text">
+            <div class="action-card-label">Promoções</div>
+            <div class="action-card-desc">Criar e ativar promoções</div>
+          </div>
+          <span class="tag-soon">Em breve</span>
+        </div>
+        <div class="action-card" onclick="adminAction('avaliacoes')">
+          <div class="action-card-icon">⭐</div>
+          <div class="action-card-text">
+            <div class="action-card-label">Avaliações</div>
+            <div class="action-card-desc">Moderar comentários de clientes</div>
+          </div>
+          <span class="tag-soon">Em breve</span>
+        </div>
+        <div class="action-card" onclick="adminAction('relatorios')">
+          <div class="action-card-icon">📊</div>
+          <div class="action-card-text">
+            <div class="action-card-label">Relatórios</div>
+            <div class="action-card-desc">Vendas e desempenho do dia</div>
+          </div>
+          <span class="tag-soon">Em breve</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ÚLTIMOS CLIENTES CADASTRADOS -->
+    <div class="admin-section">
+      <div class="admin-section-title">
+        👥 Últimos Clientes Cadastrados
+        <span id="clientesCount"></span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="admin-table" id="clientesTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>E-mail</th>
+              <th>Cargo</th>
+              <th>Desde</th>
+            </tr>
+          </thead>
+          <tbody id="clientesBody">
+            <tr><td colspan="5" style="color:var(--ash); text-align:center; padding: 2rem;">Carregando clientes…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- fim #adminPanel -->
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer" role="status" aria-live="polite"></div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+// ── Utilitários ──────────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  container.appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+}
+
+function logout() {
+  if (confirm('Deseja sair do painel?')) {
+    if (window.supabase) window.supabase.auth.signOut();
+    localStorage.removeItem('ciUser');
+    window.location.href = 'index.html';
+  }
+}
+
+// ── Verificação de Acesso ────────────────────────────────
+async function checkAdminAccess() {
+  const loading  = document.getElementById('adminLoading');
+  const denied   = document.getElementById('accessDenied');
+  const panel    = document.getElementById('adminPanel');
+
+  // Sem Supabase configurado (Fallback offline)
+  if (!window.supabase) {
+    loading.style.display = 'none';
+    denied.style.display  = 'flex';
+    return;
+  }
+
+  // Checa sessão ativa
+  const { data: { session } } = await window.supabase.auth.getSession();
+  if (!session) {
+    loading.style.display = 'none';
+    denied.style.display  = 'flex';
+    return;
+  }
+
+  // Busca o cargo no banco de dados
+  const { data: profile } = await window.supabase
+    .from('profiles')
+    .select('role, nome, id_reconhecimento')
+    .eq('id', session.user.id)
+    .single();
+
+  if (!profile || profile.role !== 'admin') {
+    loading.style.display = 'none';
+    denied.style.display  = 'flex';
+    return;
+  }
+
+  // Acesso liberado! Exibe o painel
+  loading.style.display = 'none';
+  panel.style.display   = 'block';
+
+  // Atualiza o nome na navbar
+  const userName = profile.nome || session.user.email.split('@')[0];
+  document.getElementById('adminName').textContent = userName;
+  document.getElementById('navUserName').textContent = userName;
+  document.getElementById('navAvatar').textContent   = userName[0].toUpperCase();
+
+  // Carrega os dados do painel
+  loadAdminData(session);
+}
+
+// ── Carrega dados reais do Supabase ─────────────────────
+async function loadAdminData(session) {
+  // Total de clientes
+  const { count: totalClientes } = await window.supabase
+    .from('profiles')
+    .select('*', { count: 'exact', head: true });
+  document.getElementById('statClientes').textContent = totalClientes ?? '0';
+
+  // Total de itens no cardápio
+  const { count: totalItens } = await window.supabase
+    .from('menu')
+    .select('*', { count: 'exact', head: true });
+  document.getElementById('statItens').textContent = totalItens ?? '0';
+
+  // Total de avaliações
+  const { count: totalAval } = await window.supabase
+    .from('reviews')
+    .select('*', { count: 'exact', head: true });
+  document.getElementById('statAval').textContent = totalAval ?? '0';
+
+  // Total de pedidos de hoje
+  const hoje = new Date().toISOString().split('T')[0];
+  const { count: pedidosHoje } = await window.supabase
+    .from('orders')
+    .select('*', { count: 'exact', head: true })
+    .gte('created_at', hoje);
+  document.getElementById('statPedidos').textContent = pedidosHoje ?? '0';
+
+  // Últimos clientes cadastrados
+  const { data: clientes } = await window.supabase
+    .from('profiles')
+    .select('id_reconhecimento, nome, email, role, created_at')
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  const tbody = document.getElementById('clientesBody');
+  if (!clientes || clientes.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--ash); text-align:center; padding:2rem">Nenhum cliente cadastrado ainda.</td></tr>';
+    return;
+  }
+  document.getElementById('clientesCount').textContent = `${totalClientes} total`;
+  tbody.innerHTML = clientes.map(c => {
+    const data = new Date(c.created_at).toLocaleDateString('pt-BR');
+    const cargo = c.role === 'admin'
+      ? '<span class="status-pill novo">Admin</span>'
+      : '<span class="status-pill concluido">Cliente</span>';
+    return `<tr>
+      <td><code style="color:var(--fire);font-size:0.8rem">${c.id_reconhecimento}</code></td>
+      <td>${c.nome || '—'}</td>
+      <td style="color:var(--ash)">${c.email}</td>
+      <td>${cargo}</td>
+      <td style="color:var(--ash)">${data}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Ação futura ─────────────────────────────────────────
+function adminAction(tipo) {
+  showToast(`⚙️ "${tipo}" estará disponível em breve!`);
+}
+
+// ── Init ─────────────────────────────────────────────────
+checkAdminAccess();
+</script>
+</body>
+</html>
