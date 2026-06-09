@@ -1,0 +1,282 @@
+/* ═══════════════════════════════════════
+   NAVBAR — navbar.css
+   Barra de navegação superior + menu mobile
+═══════════════════════════════════════ */
+
+/* ─── NAVBAR ─── */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: var(--nav-h);
+  background: rgba(26, 15, 5, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 2px solid rgba(255, 45, 0, 0.3);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── LOGO ─── */
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.nav-logo-stamp {
+  width: 46px;
+  height: 46px;
+  background: linear-gradient(135deg, var(--fire), var(--ember));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 23px;
+  transform: rotate(-5deg);
+  box-shadow: 3px 3px 0 var(--gold), 0 4px 16px rgba(255, 45, 0, 0.4);
+  transition: transform 0.3s;
+  flex-shrink: 0;
+}
+.nav-logo:hover .nav-logo-stamp {
+  transform: rotate(0deg) scale(1.05);
+}
+.nav-logo-text {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.55rem;
+  letter-spacing: 0.05em;
+  color: #fff;
+  line-height: 1.1;
+}
+.nav-logo-text em {
+  color: var(--gold);
+  font-style: normal;
+}
+.nav-logo-sub {
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ─── TABS ─── */
+.nav-tabs {
+  display: flex;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.nav-tab {
+  padding: 8px 18px;
+  border: none;
+  background: transparent;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  border-radius: 9px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.nav-tab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+.nav-tab.active {
+  color: var(--charcoal);
+  background: linear-gradient(135deg, var(--gold), var(--gold-light));
+  box-shadow: 0 2px 12px rgba(255, 184, 0, 0.4);
+}
+
+/* ─── AÇÕES (carrinho, usuário) ─── */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  position: relative;
+}
+.nav-btn:hover {
+  border-color: var(--fire);
+  color: #fff;
+  background: rgba(255, 45, 0, 0.15);
+}
+
+/* ─── BADGE DO CARRINHO ─── */
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--gold);
+  color: var(--charcoal);
+  font-size: 9px;
+  font-weight: 800;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--charcoal);
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+/* ─── BOTÃO USUÁRIO ─── */
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 6px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--rpill);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  font-family: 'Barlow', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.nav-user:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--fire), var(--gold));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* ─── HAMBÚRGUER (mobile) ─── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  padding: 7px;
+  border: none;
+  background: transparent;
+}
+.hamburger span {
+  width: 22px;
+  height: 2px;
+  background: var(--gold);
+  border-radius: 2px;
+  transition: all 0.3s;
+  display: block;
+}
+.hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.hamburger.open span:nth-child(2) { opacity: 0; }
+.hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+/* ─── MOBILE NAV ─── */
+.mobile-nav {
+  position: fixed;
+  top: var(--nav-h);
+  left: 0;
+  right: 0;
+  background: rgba(26, 15, 5, 0.98);
+  border-bottom: 2px solid var(--fire);
+  padding: 0.75rem 1.25rem 1rem;
+  transform: translateY(-110%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mobile-nav.open {
+  transform: translateY(0);
+}
+.mobile-nav-tab {
+  padding: 12px 16px;
+  border-radius: 11px;
+  border: none;
+  background: transparent;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+.mobile-nav-tab:hover,
+.mobile-nav-tab.active {
+  background: rgba(255, 45, 0, 0.15);
+  color: var(--gold);
+}
+
+/* ─── STATUS BAR ─── */
+.status-bar {
+  background: var(--smoke);
+  padding: 0.75rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem 2.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: relative;
+  z-index: 1;
+}
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.5);
+}
+.status-item strong {
+  color: rgba(255, 255, 255, 0.85);
+}
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #27AE60;
+  box-shadow: 0 0 8px rgba(39, 174, 96, 0.6);
+  animation: blink 1.5s ease infinite;
+  flex-shrink: 0;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}

@@ -1,0 +1,127 @@
+/* ═══════════════════════════════════════
+   REVIEWS — reviews.css
+   Seção de avaliações e formulário
+═══════════════════════════════════════ */
+
+/* ─── SEÇÃO ESCURA DE REVIEWS ─── */
+.reviews-section {
+  padding: 4rem 2.5rem;
+  background: linear-gradient(180deg, var(--charcoal) 0%, var(--smoke) 100%);
+  position: relative;
+  overflow: hidden;
+}
+.reviews-section::before {
+  content: '"';
+  position: absolute;
+  top: -60px;
+  left: 10px;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 320px;
+  color: rgba(255, 45, 0, 0.05);
+  line-height: 1;
+  pointer-events: none;
+}
+.reviews-section .section-title { color: #fff; }
+.reviews-section .section-title em { color: var(--gold); }
+.reviews-section .section-label { color: var(--gold); }
+.reviews-section .section-label::before { background: var(--gold); }
+
+/* ─── GRID DE REVIEWS ─── */
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 16px;
+  margin-top: 2rem;
+}
+
+/* ─── CARD DE REVIEW ─── */
+.review-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--r);
+  padding: 1.4rem;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.review-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--fire), var(--gold));
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.review-card:hover {
+  background: rgba(255, 45, 0, 0.07);
+  border-color: rgba(255, 45, 0, 0.2);
+  transform: translateY(-3px);
+}
+.review-card:hover::before { opacity: 1; }
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.review-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--fire), var(--gold));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 16px;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(255, 45, 0, 0.3);
+}
+.review-name  { font-weight: 700; font-size: 0.92rem; color: #fff; }
+.review-date  { font-size: 0.72rem; color: rgba(255, 255, 255, 0.35); margin-top: 2px; }
+.review-stars { color: var(--gold); font-size: 13px; margin-bottom: 9px; letter-spacing: 2px; }
+.review-text  { font-size: 0.88rem; color: rgba(255, 255, 255, 0.6); line-height: 1.65; font-style: italic; }
+
+/* ─── ABA DE AVALIAÇÕES ─── */
+#tab-sobre { padding: 2.5rem; }
+
+/* ─── FORMULÁRIO DE AVALIAÇÃO ─── */
+.rating-form {
+  background: var(--white);
+  border-radius: var(--r);
+  border: 2px solid var(--border);
+  padding: 1.75rem;
+  margin-top: 2.5rem;
+  box-shadow: var(--shadow-sm);
+}
+.rating-form h3 {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  color: var(--charcoal);
+  margin-bottom: 1.25rem;
+}
+
+/* ─── SELETOR DE ESTRELAS ─── */
+.star-picker {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.star-pick {
+  font-size: 30px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  filter: grayscale(1) opacity(0.4);
+  padding: 2px;
+}
+.star-pick:hover,
+.star-pick.active {
+  filter: none;
+  transform: scale(1.2);
+}
