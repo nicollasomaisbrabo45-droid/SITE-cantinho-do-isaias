@@ -1,0 +1,321 @@
+/* ═══════════════════════════════════════
+   UI — ui.js
+   Renderização do cardápio, promocoes,
+   pedidos e avaliações.
+═══════════════════════════════════════ */
+
+function fmtPrice(n) {
+  return n.toFixed(2).replace('.', ',');
+}
+
+function showToast(msg, duration = 3200) {
+  const c = document.getElementById('toastContainer');
+  if (!c) return;
+  
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  c.appendChild(t);
+  
+  setTimeout(() => {
+    t.style.animation = 'none';
+    t.style.opacity = '0';
+    t.style.transform = 'translateY(10px)';
+    t.style.transition = 'all 0.3s';
+    setTimeout(() => t.remove(), 300);
+  }, duration);
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  const anyOpen = document.querySelector('.modal-overlay.open') || document.getElementById('cartSidebar').classList.contains('open');
+  if (!anyOpen) document.body.style.overflow = '';
+}
+
+function toggleMobileNav() {
+  const nav = document.getElementById('mobileNav');
+  const btn = document.getElementById('hamburgerBtn');
+  const isOpen = nav.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  btn.setAttribute('aria-expanded', isOpen);
+}
+
+function switchTab(tab, btn) {
+  ['cardapio','promos','pedidos','sobre'].forEach(t => {
+    const el = document.getElementById(`tab-${t}`);
+    if (el) el.style.display = 'none';
+  });
+  
+  const active = document.getElementById(`tab-${tab}`);
+  if (active) active.style.display = 'block';
+
+  document.querySelectorAll('.nav-tab, .mobile-nav-tab').forEach(b => {
+    b.classList.remove('active');
+    b.setAttribute('aria-selected', 'false');
+  });
+  
+  if (btn) {
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+  }
+
+  document.getElementById('statusBar').style.display = tab === 'cardapio' ? '' : 'none';
+
+  if (tab === 'promos') renderPromos();
+  if (tab === 'pedidos') renderOrders();
+  if (tab === 'sobre') {
+    document.getElementById('reviewsGrid2').innerHTML = document.getElementById('reviewsGrid').innerHTML;
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderMenu(items) {
+  const grid = document.getElementById('menuGrid');
+  if (!grid) return;
+
+  document.getElementById('menuCount').textContent = `${items.length} ${items.length === 1 ? 'item' : 'itens'}`;
+
+  grid.innerHTML = items.map(item => `
+    <div class="product-card fade-in" id="card-${item.id}" role="listitem">
+      <div class="card-img">
+        ${item.badge ? `<span class="card-badge badge-${item.badge}">${item.badge==='hot'?'🔥 Top':item.badge==='new'?'✨ Novo':'⭐ Popular'}</span>` : ''}
+        <span class="card-img-emoji">${item.emoji}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-rating">
+          <span class="star">⭐</span>${item.rating}
+          <span style="color:var(--ash-light)">(${item.reviews})</span>
+        </div>
+        <div class="card-title">${item.name}</div>
+        <div class="card-desc">${item.desc}</div>
+        <div class="card-footer">
+          <div class="card-price-wrap">
+            <span class="card-price">R$ ${fmtPrice(item.price)}</span>
+            ${item.oldPrice ? `<span class="card-price-old">R$ ${fmtPrice(item.oldPrice)}</span>` : ''}
+          </div>
+          <div id="addControl-${item.id}">
+            <button class="add-btn" onclick="addToCart(${item.id})" aria-label="Adicionar ${item.name} ao carrinho" title="Adicionar">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  cart.forEach(ci => {
+    const el = document.getElementById(`addControl-${ci.id}`);
+    if (el) renderQtyControl(ci.id, ci.qty);
+  });
+}
+
+function renderQtyControl(id, qty) {
+  const el = document.getElementById(`addControl-${id}`);
+  if (!el) return;
+  if (qty <= 0) {
+    el.innerHTML = `<button class="add-btn" onclick="addToCart(${id})" aria-label="Adicionar ao carrinho">+</button>`;
+  } else {
+    el.innerHTML = `
+      <div class="qty-control" role="group" aria-label="Quantidade">
+        <button class="qty-btn" onclick="changeQty(${id},-1)" aria-label="Diminuir">−</button>
+        <span class="qty-num" aria-live="polite">${qty}</span>
+        <button class="qty-btn" onclick="changeQty(${id},1)" aria-label="Aumentar">+</button>
+      </div>`;
+  }
+}
+
+function filterCategory(cat, btn) {
+  document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  
+  const filtered = cat === 'todos' ? globalMenu : globalMenu.filter(m => m.cat === cat);
+  
+  const labels = {
+    todos: ['Cardápio', 'Completo'],
+    lanches: ['Lanches', 'Artesanais'],
+    porcoes: ['Porções', 'Deliciosas'],
+    bebidas: ['Bebidas', 'Geladinhas'],
+    combos: ['Combos', 'Especiais'],
+    sobremesas: ['Sobremesas', 'Irresistíveis'],
+  };
+  
+  const [l1, l2] = labels[cat] || ['Cardápio','Completo'];
+  document.getElementById('menuTitle').innerHTML = `${l1} <em>${l2}</em>`;
+  renderMenu(filtered);
+}
+
+function renderPromos() {
+  const promos = globalMenu.filter(m => m.oldPrice || m.badge === 'hot');
+  document.getElementById('promosGrid').innerHTML = promos.map(item => `
+    <div class="product-card fade-in" role="listitem">
+      <div class="card-img">
+        <span class="card-badge badge-hot">🔥 Oferta</span>
+        <span class="card-img-emoji">${item.emoji}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-rating"><span class="star">⭐</span>${item.rating} <span style="color:var(--ash-light)">(${item.reviews})</span></div>
+        <div class="card-title">${item.name}</div>
+        <div class="card-desc">${item.desc}</div>
+        <div class="card-footer">
+          <div>
+            <span class="card-price">R$ ${fmtPrice(item.price)}</span>
+            ${item.oldPrice ? `<span class="card-price-old">R$ ${fmtPrice(item.oldPrice)}</span>` : ''}
+          </div>
+          <button class="add-btn" onclick="addToCart(${item.id})" aria-label="Adicionar ${item.name}">+</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function renderOrders() {
+  const cont = document.getElementById('ordersContent');
+  if (!cont) return;
+
+  let ordersToRender = [];
+
+  if (supabase && currentUser) {
+    try {
+      cont.innerHTML = `<div style="text-align:center;padding:4rem;color:var(--ash)">Carregando pedidos...</div>`;
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          id, created_at, status, total,
+          order_items(name, quantity)
+        `)
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      ordersToRender = data.map(o => ({
+        num: String(o.id).padStart(4, '0'),
+        date: new Date(o.created_at).toLocaleString('pt-BR'),
+        items: o.order_items.map(i => ({ qty: i.quantity, name: i.name })),
+        total: fmtPrice(Number(o.total)),
+        status: o.status
+      }));
+
+    } catch (e) {
+      console.error('Erro ao buscar pedidos:', e);
+    }
+  } else {
+    // Modo local / Fallback
+    ordersToRender = JSON.parse(localStorage.getItem('ciOrders') || '[]');
+    ordersToRender = [...ordersToRender].reverse();
+  }
+
+  if (ordersToRender.length === 0) {
+    cont.innerHTML = `
+      <div style="text-align:center;padding:4rem 1rem;color:var(--ash)">
+        <div style="font-size:80px;margin-bottom:1rem;opacity:0.25">📦</div>
+        <p style="font-family:'Bebas Neue',cursive;font-size:1.6rem;letter-spacing:0.04em;color:var(--charcoal);margin-bottom:0.5rem">
+          ${!currentUser && supabase ? 'FAÇA LOGIN PARA VER SEUS PEDIDOS' : 'NENHUM PEDIDO AINDA'}
+        </p>
+        <p style="font-size:0.87rem">Faça seu primeiro pedido e ele aparecerá aqui!</p>
+        <button class="btn-fire" style="margin-top:1.75rem;margin-inline:auto;" onclick="switchTab('cardapio')">🍔 Ver Cardápio</button>
+      </div>`;
+    return;
+  }
+
+  cont.innerHTML = ordersToRender.map(o => `
+    <div class="order-card fade-in">
+      <div class="order-card-head">
+        <span class="order-num">#${o.num}</span>
+        <span class="order-date">${o.date}</span>
+      </div>
+      <div class="order-items">${o.items.map(i => `${i.qty}× ${i.name}`).join(' · ')}</div>
+      <div class="order-foot">
+        <span class="order-status ${o.status === 'preparando' ? 'preparando' : ''}">
+          ${o.status === 'preparando' ? '⏳ Preparando' : '✅ Entregue'}
+        </span>
+        <span class="order-total">R$ ${o.total}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderReviewsUI(reviews) {
+  const html = reviews.map(r => `
+    <div class="review-card fade-in">
+      <div class="review-header">
+        <div class="review-avatar">${r.init}</div>
+        <div>
+          <div class="review-name">${r.name}</div>
+          <div class="review-date">${r.date}</div>
+        </div>
+      </div>
+      <div class="review-stars">${'⭐'.repeat(r.stars)}</div>
+      <div class="review-text">"${r.text}"</div>
+    </div>
+  `).join('');
+  
+  document.getElementById('reviewsGrid').innerHTML = html;
+}
+
+function setRating(n) {
+  currentRating = n;
+  document.querySelectorAll('.star-pick').forEach((s, i) => {
+    s.classList.toggle('active', i < n);
+    s.style.filter = i < n ? 'none' : 'grayscale(1) opacity(0.4)';
+    s.style.transform = i < n ? 'scale(1.05)' : 'scale(1)';
+  });
+  showToast(`⭐ Nota ${n} selecionada`);
+}
+
+async function submitReview() {
+  const text = document.getElementById('reviewText').value.trim();
+  if (!text) { showToast('⚠️ Escreva sua avaliação antes de enviar'); return; }
+  
+  const name = currentUser ? currentUser.name : 'Visitante';
+
+  if (supabase) {
+    try {
+      const { error } = await supabase.from('reviews').insert([{
+        user_name: name,
+        rating: currentRating,
+        text: text,
+        date: new Date().toLocaleDateString('pt-BR')
+      }]);
+      if (error) throw error;
+    } catch (e) {
+      console.error('Erro ao enviar review:', e);
+      showToast('❌ Erro ao enviar avaliação.');
+      return;
+    }
+  }
+
+  showToast('✅ Avaliação enviada! Obrigado 💛');
+  document.getElementById('reviewText').value = '';
+  setRating(5);
+  
+  // Atualiza as reviews na tela
+  const latestReviews = await fetchReviews();
+  renderReviewsUI(latestReviews);
+  if (document.getElementById('tab-sobre').style.display !== 'none') {
+    document.getElementById('reviewsGrid2').innerHTML = document.getElementById('reviewsGrid').innerHTML;
+  }
+}
+
+function initParticles() {
+  const container = document.getElementById('heroParticles');
+  if (!container) return;
+  const colors = ['rgba(255,184,0,0.6)', 'rgba(255,45,0,0.5)', 'rgba(255,107,26,0.5)'];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'hero-particle';
+    const size = Math.random() * 6 + 3;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random() * 100}%;
+      background:${colors[Math.floor(Math.random() * colors.length)]};
+      animation-duration:${Math.random() * 8 + 6}s;
+      animation-delay:${Math.random() * 6}s;
+    `;
+    container.appendChild(p);
+  }
+}
