@@ -16,8 +16,13 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- Política: Usuários podem ver o próprio perfil e outros podem ver perfis públicos (opcional)
+DROP POLICY IF EXISTS "Permitir leitura de perfis para todos" ON public.profiles;
+DROP POLICY IF EXISTS "Usuários podem atualizar próprio perfil" ON public.profiles;
+DROP POLICY IF EXISTS "Usuários podem criar próprio perfil" ON public.profiles;
+
 CREATE POLICY "Permitir leitura de perfis para todos" ON public.profiles FOR SELECT USING (true);
 CREATE POLICY "Usuários podem atualizar próprio perfil" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Usuários podem criar próprio perfil" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- ==============================================================================
 -- 2. FUNÇÃO E TRIGGER PARA GERAR O ID DE RECONHECIMENTO (#TDS1828)
@@ -52,7 +57,10 @@ $$ LANGUAGE plpgsql;
 
 -- Trigger para criar o perfil automaticamente quando o usuário se registra no Supabase Auth
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER 
+LANGUAGE plpgsql
+SECURITY DEFINER SET search_path = public
+AS $$
 BEGIN
   INSERT INTO public.profiles (id, email, nome, id_reconhecimento)
   VALUES (
@@ -63,7 +71,7 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
@@ -86,6 +94,7 @@ CREATE TABLE IF NOT EXISTS public.menu (
   is_active BOOLEAN DEFAULT true
 );
 ALTER TABLE public.menu ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Menu é público para leitura" ON public.menu;
 CREATE POLICY "Menu é público para leitura" ON public.menu FOR SELECT USING (true);
 
 

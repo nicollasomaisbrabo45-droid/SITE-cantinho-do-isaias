@@ -97,6 +97,21 @@ async function handleAuth() {
         }
       });
       if (error) throw error;
+
+      // Salva explicitamente as informações na tabela "profiles"
+      if (data && data.user) {
+        const { error: profileError } = await supabase.from('profiles').upsert([{
+          id: data.user.id,
+          email: email,
+          nome: name,
+          id_reconhecimento: reconhecimento_id
+        }]);
+        
+        if (profileError) {
+          console.error("Erro ao salvar perfil:", profileError);
+        }
+      }
+
       showToast('✅ Conta criada! Você já pode entrar.');
       toggleAuthMode();
     } else {

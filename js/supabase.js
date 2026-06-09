@@ -6,10 +6,11 @@
 // ==========================================
 // ⚠️ ATENÇÃO: SUBSTITUA COM SEUS DADOS! ⚠️
 // ==========================================
-const SUPABASE_URL = 'https://SEU-PROJETO.supabase.co'; // Substitua pela URL do seu projeto
-const SUPABASE_ANON_KEY = 'Sua-Anon-Key-Aqui'; // Substitua pela sua Anon Key
+const SUPABASE_URL = 'https://zsyoffmopznlznrvsysp.supabase.co'; // URL corrigida do seu projeto
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzeW9mZm1vcHpubHpucnZzeXNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMTEzMDIsImV4cCI6MjA5NjU4NzMwMn0.At4KCVbHjH1Lrt1IDR1wU1klLiCstcPnQf1ZoxBj5Fg';
 
-let supabase = null;
+// Salva a referência da biblioteca original que veio do CDN
+const supabaseLib = window.supabase;
 
 // Inicializa o cliente do Supabase apenas se as chaves tiverem sido alteradas
 if (SUPABASE_URL.includes('SEU-PROJETO') || SUPABASE_ANON_KEY.includes('Sua-Anon-Key-Aqui')) {
@@ -19,5 +20,5 @@ if (SUPABASE_URL.includes('SEU-PROJETO') || SUPABASE_ANON_KEY.includes('Sua-Anon
   window.supabase = null;
 } else {
   // Inicializa o client usando a lib importada via CDN no index.html e expõe globalmente
-  window.supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  window.supabase = supabaseLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
