@@ -81,11 +81,17 @@ function renderMenu(items) {
 
   document.getElementById('menuCount').textContent = `${items.length} ${items.length === 1 ? 'item' : 'itens'}`;
 
-  grid.innerHTML = items.map(item => `
+  grid.innerHTML = items.map(item => {
+    const imgHtml = item.imageUrl 
+      ? `<img src="${item.imageUrl}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'">
+         <span class="card-img-emoji" style="display:none">${item.emoji}</span>`
+      : `<span class="card-img-emoji">${item.emoji}</span>`;
+
+    return `
     <div class="product-card fade-in" id="card-${item.id}" role="listitem">
-      <div class="card-img">
-        ${item.badge ? `<span class="card-badge badge-${item.badge}">${item.badge==='hot'?'🔥 Top':item.badge==='new'?'✨ Novo':'⭐ Popular'}</span>` : ''}
-        <span class="card-img-emoji">${item.emoji}</span>
+      <div class="card-img" style="position:relative;overflow:hidden">
+        ${item.badge ? `<span class="card-badge badge-${item.badge}" style="z-index:2">${item.badge==='hot'?'🔥 Top':item.badge==='new'?'✨ Novo':'⭐ Popular'}</span>` : ''}
+        ${imgHtml}
       </div>
       <div class="card-body">
         <div class="card-rating">
@@ -100,12 +106,12 @@ function renderMenu(items) {
             ${item.oldPrice ? `<span class="card-price-old">R$ ${fmtPrice(item.oldPrice)}</span>` : ''}
           </div>
           <div id="addControl-${item.id}">
-            <button class="add-btn" onclick="addToCart(${item.id})" aria-label="Adicionar ${item.name} ao carrinho" title="Adicionar">+</button>
+            <button class="add-btn" onclick="addToCart('${item.id}')" aria-label="Adicionar ${item.name} ao carrinho" title="Adicionar">+</button>
           </div>
         </div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 
   cart.forEach(ci => {
     const el = document.getElementById(`addControl-${ci.id}`);
@@ -150,11 +156,17 @@ function filterCategory(cat, btn) {
 
 function renderPromos() {
   const promos = globalMenu.filter(m => m.oldPrice || m.badge === 'hot');
-  document.getElementById('promosGrid').innerHTML = promos.map(item => `
+  document.getElementById('promosGrid').innerHTML = promos.map(item => {
+    const imgHtml = item.imageUrl 
+      ? `<img src="${item.imageUrl}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'">
+         <span class="card-img-emoji" style="display:none">${item.emoji}</span>`
+      : `<span class="card-img-emoji">${item.emoji}</span>`;
+
+    return `
     <div class="product-card fade-in" role="listitem">
-      <div class="card-img">
-        <span class="card-badge badge-hot">🔥 Oferta</span>
-        <span class="card-img-emoji">${item.emoji}</span>
+      <div class="card-img" style="position:relative;overflow:hidden">
+        <span class="card-badge badge-hot" style="z-index:2">🔥 Oferta</span>
+        ${imgHtml}
       </div>
       <div class="card-body">
         <div class="card-rating"><span class="star">⭐</span>${item.rating} <span style="color:var(--ash-light)">(${item.reviews})</span></div>
@@ -165,11 +177,11 @@ function renderPromos() {
             <span class="card-price">R$ ${fmtPrice(item.price)}</span>
             ${item.oldPrice ? `<span class="card-price-old">R$ ${fmtPrice(item.oldPrice)}</span>` : ''}
           </div>
-          <button class="add-btn" onclick="addToCart(${item.id})" aria-label="Adicionar ${item.name}">+</button>
+          <button class="add-btn" onclick="addToCart('${item.id}')" aria-label="Adicionar ${item.name}">+</button>
         </div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 async function renderOrders() {

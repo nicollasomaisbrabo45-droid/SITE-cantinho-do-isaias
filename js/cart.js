@@ -83,21 +83,27 @@ function renderCartItems() {
     return;
   }
 
-  c.innerHTML = cart.map(item => `
+  c.innerHTML = cart.map(item => {
+    const iconHtml = item.imageUrl
+      ? `<img src="${item.imageUrl}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+         <div class="cart-item-icon" style="display:none">${item.emoji}</div>`
+      : `<div class="cart-item-icon">${item.emoji}</div>`;
+
+    return `
     <div class="cart-item fade-in">
-      <div class="cart-item-icon">${item.emoji}</div>
+      <div style="width:50px;height:50px;flex-shrink:0;position:relative">${iconHtml}</div>
       <div class="cart-item-info">
         <div class="cart-item-name">${item.name}</div>
         <div class="cart-item-price">R$ ${fmtPrice(item.price * item.qty)} (${item.qty}x)</div>
       </div>
       <div class="qty-control" style="gap:6px">
-        <button class="qty-btn" style="width:28px;height:28px;font-size:15px" onclick="changeQty(${item.id},-1)" aria-label="Diminuir">−</button>
+        <button class="qty-btn" style="width:28px;height:28px;font-size:15px" onclick="changeQty('${item.id}',-1)" aria-label="Diminuir">−</button>
         <span class="qty-num" style="font-size:0.9rem">${item.qty}</span>
-        <button class="qty-btn" style="width:28px;height:28px;font-size:15px" onclick="changeQty(${item.id},1)" aria-label="Aumentar">+</button>
+        <button class="qty-btn" style="width:28px;height:28px;font-size:15px" onclick="changeQty('${item.id}',1)" aria-label="Aumentar">+</button>
       </div>
-      <button class="cart-item-remove" onclick="removeFromCart(${item.id})" aria-label="Remover ${item.name}">🗑️</button>
+      <button class="cart-item-remove" onclick="removeFromCart('${item.id}')" aria-label="Remover ${item.name}">🗑️</button>
     </div>
-  `).join('');
+  `}).join('');
   
   updateCartUI();
 }

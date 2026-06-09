@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gerenciar Cardápio | Admin — Cantinho do Isaias</title>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/variables.css"/>
+<link rel="stylesheet" href="css/base.css"/>
+<link rel="stylesheet" href="css/navbar.css"/>
+<style>
+/* ══════════════════════════════════════
+   BASE
+══════════════════════════════════════ */
+body { background: #0d0d0f; min-height: 100vh; color: #fff; }
+
+.page-wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+}
+
+/* ── LOADING / DENIED ── */
+.full-center {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 70vh; gap: 1.5rem; text-align: center;
+}
+.spin {
+  width: 40px; height: 40px; border: 3px solid #2a2a30;
+  border-top-color: var(--fire); border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.access-denied h2 { font-family:'Bebas Neue',sans-serif; font-size:2.5rem; color:#ff4545; }
+.access-denied p { color: var(--ash); }
+.btn-back {
+  background: var(--fire); color:#fff; border:none; padding:0.75rem 2rem;
+  border-radius:999px; font-family:'Barlow Condensed',sans-serif; font-size:1rem;
+  font-weight:700; cursor:pointer; text-decoration:none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.btn-back:hover { opacity:0.85; transform:scale(1.04); }
+
+/* ── NAVBAR CUSTOM ── */
+.admin-back-link {
+  display:inline-flex; align-items:center; gap:0.4rem; color:var(--ash);
+  font-size:0.85rem; font-weight:600; text-decoration:none; margin-bottom:1.5rem;
+  transition: color 0.2s;
+}
+.admin-back-link:hover { color:#fff; }
+.admin-badge {
+  background: linear-gradient(135deg,#f5c518,#e6a800); color:#0d0d0f;
+  font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:0.75rem;
+  padding:0.3rem 0.85rem; border-radius:999px; letter-spacing:1px; text-transform:uppercase;
+}
+
+/* ── PAGE HEADER ── */
+.page-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;
+}
+.page-header h1 {
+  font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem;
+  color: #fff; letter-spacing: 2px; line-height: 1;
+}
+.page-header p { color: var(--ash); font-size: 0.875rem; margin-top: 0.3rem; }
+
+.header-actions { display:flex; gap: 0.75rem; align-items: center; flex-wrap:wrap; }
+
+/* ── BUTTONS ── */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--fire); color: #fff; border: none;
+  padding: 0.7rem 1.4rem; border-radius: 10px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: opacity 0.2s, transform 0.15s;
+}
+.btn-primary:hover { opacity: 0.88; transform: scale(1.03); }
+.btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: transparent; color: var(--ash); border: 1.5px solid #2a2a30;
+  padding: 0.65rem 1.3rem; border-radius: 10px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 600;
+  cursor: pointer; transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.btn-outline:hover { border-color: var(--fire); color: #fff; background: rgba(255,90,0,0.07); }
+
+.btn-save {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: #22c55e; color: #fff; border: none;
+  padding: 0.7rem 1.6rem; border-radius: 10px;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: opacity 0.2s, transform 0.15s, background 0.2s;
+}
+.btn-save:hover { background:#16a34a; transform:scale(1.03); }
+.btn-save:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+/* ── DRAFT BANNER ── */
+.draft-banner {
+  display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;
+  background: rgba(234,179,8,0.1); border: 1.5px solid rgba(234,179,8,0.4);
+  border-radius: 12px; padding: 0.9rem 1.25rem; margin-bottom: 1.5rem;
+  font-size: 0.9rem; font-weight: 600; color: #fde047;
+}
+.draft-banner.active { display: flex; }
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.75rem;
+}
+.filter-pill {
+  padding: 0.45rem 1rem; border-radius: 999px;
+  border: 1.5px solid #2a2a30; background: transparent;
+  color: var(--ash); font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: all 0.18s;
+}
+.filter-pill.active, .filter-pill:hover {
+  border-color: var(--fire); color: #fff; background: rgba(255,90,0,0.12);
+}
+
+/* Wrapper de categoria com botão de deletar */
+.filter-pill-wrap {
+  display: inline-flex; align-items: center; gap: 0;
+  border: 1.5px solid #2a2a30; border-radius: 999px;
+  background: transparent; transition: border-color 0.18s;
+  overflow: hidden;
+}
+.filter-pill-wrap:hover { border-color: var(--fire); }
+.filter-pill-wrap .filter-pill {
+  border: none; border-radius: 0; padding-right: 0.6rem;
+}
+.filter-pill-wrap .filter-pill:hover { background: transparent; }
+.filter-pill-wrap:hover .filter-pill { color: #fff; }
+.pill-del {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--ash); font-size: 0.8rem; padding: 0.45rem 0.6rem 0.45rem 0;
+  transition: color 0.18s, background 0.18s; border-radius: 0 999px 999px 0;
+  line-height: 1;
+}
+.pill-del:hover { color: #ef4444; background: rgba(239,68,68,0.15); }
+
+/* ── GRID DE ITENS ── */
+.cardapio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 1.1rem;
+}
+
+.menu-admin-card {
+  background: #18181c; border: 1px solid #2a2a30; border-radius: 18px;
+  overflow: hidden; transition: border-color 0.2s, transform 0.18s;
+  position: relative;
+}
+.menu-admin-card:hover { border-color: rgba(255,90,0,0.5); transform: translateY(-2px); }
+.menu-admin-card.draft { border-color: rgba(234,179,8,0.45); }
+
+.draft-tag {
+  position:absolute; top:10px; left:10px; z-index:2;
+  background:#854d0e; color:#fde047; font-size:0.65rem; font-weight:800;
+  padding:0.2rem 0.6rem; border-radius:6px; text-transform:uppercase; letter-spacing:0.5px;
+}
+
+.card-img-wrap {
+  width: 100%; height: 165px; overflow: hidden; background: #111115;
+  display: flex; align-items: center; justify-content: center;
+}
+.card-img-wrap img { width:100%; height:100%; object-fit:cover; }
+.card-img-wrap .no-img { font-size: 3.5rem; opacity: 0.3; }
+
+.card-body { padding: 1rem 1.1rem; }
+.card-category {
+  font-size: 0.72rem; font-weight: 700; color: var(--fire);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem;
+}
+.card-name { font-weight: 700; font-size: 1rem; color: #fff; margin-bottom: 0.35rem; }
+.card-desc { font-size: 0.8rem; color: var(--ash); line-height: 1.45; margin-bottom: 0.75rem;
+  display: -webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.card-footer-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+}
+.card-price { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color: var(--fire); }
+.card-actions { display:flex; gap:0.4rem; }
+.card-btn {
+  width:34px; height:34px; border-radius:8px; border:1px solid #2a2a30;
+  background:transparent; cursor:pointer; font-size:0.95rem;
+  display:grid; place-items:center; transition: background 0.18s, border-color 0.18s;
+}
+.card-btn.edit:hover { background: rgba(59,130,246,0.2); border-color:#3b82f6; }
+.card-btn.del:hover  { background: rgba(239,68,68,0.2);  border-color:#ef4444; }
+
+.card-toggle {
+  display:flex; align-items:center; gap:0.4rem; font-size:0.75rem; color:var(--ash);
+  cursor:pointer; user-select:none;
+}
+.toggle-sw {
+  width:34px; height:18px; background:#2a2a30; border-radius:999px;
+  position:relative; transition: background 0.2s; flex-shrink:0;
+}
+.toggle-sw.on { background: var(--fire); }
+.toggle-sw::after {
+  content:''; position:absolute; left:2px; top:2px;
+  width:14px; height:14px; border-radius:50%; background:#fff;
+  transition: left 0.2s;
+}
+.toggle-sw.on::after { left:18px; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  grid-column: 1 / -1; text-align:center; padding: 4rem 1rem;
+  color: var(--ash); display:flex; flex-direction:column; align-items:center; gap:1rem;
+}
+.empty-state .empty-icon { font-size:3.5rem; opacity:0.35; }
+
+/* ══════════════════════════════════════
+   POPUP / MODAL
+══════════════════════════════════════ */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(4px);
+  z-index:1000; display:none; align-items:center; justify-content:center; padding:1rem;
+}
+.modal-overlay.open { display:flex; }
+
+.modal-box {
+  background: #18181c; border: 1px solid #2a2a30; border-radius: 24px;
+  width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto;
+  animation: popIn 0.22s ease;
+}
+@keyframes popIn {
+  from { opacity:0; transform:scale(0.93) translateY(12px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.5rem 1.75rem 0;
+}
+.modal-head h3 { font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:700; }
+.modal-close-btn {
+  width:34px; height:34px; border-radius:50%; border:1px solid #2a2a30;
+  background:transparent; color:var(--ash); cursor:pointer; font-size:1.1rem;
+  display:grid; place-items:center; transition: background 0.18s; flex-shrink:0;
+}
+.modal-close-btn:hover { background:#2a2a30; color:#fff; }
+
+.modal-body { padding: 1.5rem 1.75rem 1.75rem; display:flex; flex-direction:column; gap:1.1rem; }
+
+/* ── FORM ── */
+.field { display:flex; flex-direction:column; gap:0.4rem; }
+.field label { font-size:0.8rem; font-weight:700; color:var(--ash); text-transform:uppercase; letter-spacing:0.4px; }
+.field input, .field textarea, .field select {
+  background:#111115; border:1.5px solid #2a2a30; border-radius:10px;
+  padding:0.7rem 0.9rem; color:#fff; font-family:'Barlow',sans-serif; font-size:0.9rem;
+  transition: border-color 0.2s; outline:none; width:100%; box-sizing:border-box;
+}
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--fire); }
+.field select option { background:#18181c; }
+.field textarea { resize:vertical; min-height:85px; }
+
+/* Upload de imagem */
+.img-upload-area {
+  border:2px dashed #2a2a30; border-radius:12px; padding:1.5rem;
+  display:flex; flex-direction:column; align-items:center; gap:0.6rem;
+  cursor:pointer; transition: border-color 0.2s, background 0.2s;
+  position:relative; overflow:hidden; min-height:120px;
+}
+.img-upload-area:hover { border-color:var(--fire); background:rgba(255,90,0,0.04); }
+.img-upload-area input[type=file] {
+  position:absolute; inset:0; opacity:0; cursor:pointer; padding:0; border:none; background:none;
+}
+.img-upload-area .upload-icon { font-size:2rem; opacity:0.5; }
+.img-upload-area .upload-text { font-size:0.82rem; color:var(--ash); text-align:center; }
+.img-preview {
+  width:100%; max-height:160px; object-fit:cover; border-radius:8px; display:none;
+}
+
+.field-row { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
+
+.modal-footer {
+  display:flex; gap:0.75rem; justify-content:flex-end; padding: 0 1.75rem 1.75rem;
+}
+.btn-cancel {
+  padding:0.65rem 1.3rem; border-radius:10px; border:1.5px solid #2a2a30;
+  background:transparent; color:var(--ash); font-family:'Barlow Condensed',sans-serif;
+  font-size:1rem; font-weight:600; cursor:pointer; transition:all 0.18s;
+}
+.btn-cancel:hover { border-color:#666; color:#fff; }
+.btn-confirm {
+  padding:0.65rem 1.5rem; border-radius:10px; border:none;
+  background:var(--fire); color:#fff; font-family:'Barlow Condensed',sans-serif;
+  font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.18s, transform 0.15s;
+}
+.btn-confirm:hover { opacity:0.88; transform:scale(1.03); }
+.btn-confirm:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+/* ── TOAST ── */
+.toast-container { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; display:flex; flex-direction:column; gap:0.5rem; }
+.toast {
+  background:#1e1e24; border:1px solid #2a2a30; color:#fff; padding:0.8rem 1.2rem;
+  border-radius:12px; font-size:0.875rem; font-weight:500; max-width:320px;
+  opacity:0; transform:translateY(8px); transition:all 0.3s;
+}
+.toast.show { opacity:1; transform:translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width:600px) {
+  .page-header { flex-direction:column; align-items:flex-start; }
+  .header-actions { width:100%; }
+  .btn-primary, .btn-outline, .btn-save { flex:1; justify-content:center; }
+  .field-row { grid-template-columns:1fr; }
+  .modal-box { border-radius:16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" role="navigation" aria-label="Menu principal">
+  <a href="index.html" class="nav-logo">
+    <div class="nav-logo-stamp">🍔</div>
+    <div>
+      <div class="nav-logo-text">Cantinho do <em>Isaias</em></div>
+      <div class="nav-logo-sub">Cardápio · Admin</div>
+    </div>
+  </a>
+  <div class="nav-actions">
+    <span class="admin-badge">★ Admin</span>
+    <button class="nav-user" onclick="logout()" style="margin-left:0.5rem" title="Sair">
+      <div class="avatar" id="navAvatar">👤</div>
+      <span id="navUserName">Sair</span>
+    </button>
+  </div>
+</nav>
+
+<!-- LOADING -->
+<div id="pageLoading" class="full-center">
+  <div class="spin"></div>
+  <span style="color:var(--ash)">Verificando permissões…</span>
+</div>
+
+<!-- ACESSO NEGADO -->
+<div id="accessDenied" class="full-center access-denied" style="display:none">
+  <div style="font-size:4rem">🔒</div>
+  <h2>Acesso Restrito</h2>
+  <p>Apenas administradores têm acesso a esta página.</p>
+  <a href="index.html" class="btn-back">← Voltar ao Site</a>
+</div>
+
+<!-- CONTEÚDO ADMIN -->
+<div id="adminContent" class="page-wrapper" style="display:none">
+
+  <a href="admin.html" class="admin-back-link">← Voltar ao Gerenciamento</a>
+
+  <div class="page-header">
+    <div>
+      <h1>🍔 Gerenciar Cardápio</h1>
+      <p>Adicione, edite e organize os itens do cardápio.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-outline" id="btnAddCategoria" onclick="openCategoriaModal()">
+        🏷️ Nova Categoria
+      </button>
+      <button class="btn-primary" id="btnAddItem" onclick="openItemModal()">
+        ＋ Adicionar Item
+      </button>
+      <button class="btn-save" id="btnSalvar" onclick="salvarCardapio()" disabled>
+        ✓ Salvar Cardápio
+      </button>
+    </div>
+  </div>
+
+  <!-- Banner de rascunho -->
+  <div class="draft-banner" id="draftBanner">
+    <span>⚠️ Você tem <strong id="draftCount">0</strong> item(ns) em rascunho. Clique em "Salvar Cardápio" para publicar no site.</span>
+  </div>
+
+  <!-- Filtro por categoria -->
+  <div class="filter-bar" id="filterBar">
+    <button class="filter-pill active" data-cat="todos" onclick="filterItems('todos', this)">🍽️ Todos</button>
+  </div>
+
+  <!-- Grid de itens -->
+  <div class="cardapio-grid" id="cardapioGrid">
+    <div class="empty-state">
+      <div class="spin"></div>
+      <p>Carregando itens…</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: ADICIONAR / EDITAR ITEM
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="itemModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="itemModalTitle">➕ Adicionar Item</h3>
+      <button class="modal-close-btn" onclick="closeItemModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Foto -->
+      <div class="field">
+        <label>Foto do Item</label>
+        <div class="img-upload-area" id="uploadArea">
+          <input type="file" id="itemFoto" accept="image/*" onchange="previewImage(this)"/>
+          <img class="img-preview" id="imgPreview" src="" alt="Pré-visualização"/>
+          <div class="upload-icon" id="uploadIcon">📷</div>
+          <div class="upload-text" id="uploadText">Clique ou arraste uma foto aqui<br><span style="font-size:0.75rem;opacity:0.6">JPG, PNG, WEBP • Máx. 5MB</span></div>
+        </div>
+      </div>
+
+      <!-- Nome e Categoria -->
+      <div class="field-row">
+        <div class="field">
+          <label>Nome do Item *</label>
+          <input type="text" id="itemNome" placeholder="Ex: X-Burguer Especial"/>
+        </div>
+        <div class="field">
+          <label>Categoria *</label>
+          <select id="itemCategoria">
+            <option value="">Selecionar…</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Descrição -->
+      <div class="field">
+        <label>Descrição</label>
+        <textarea id="itemDesc" placeholder="Ingredientes, tamanho, diferenciais…"></textarea>
+      </div>
+
+      <!-- Preço e status -->
+      <div class="field-row">
+        <div class="field">
+          <label>Preço (R$) *</label>
+          <input type="number" id="itemPreco" placeholder="0,00" min="0" step="0.01"/>
+        </div>
+        <div class="field">
+          <label>Disponível no site</label>
+          <select id="itemAtivo">
+            <option value="true">✅ Sim (Publicado)</option>
+            <option value="false">⏸️ Não (Rascunho)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- URL de imagem alternativa -->
+      <div class="field">
+        <label>Ou cole uma URL de imagem</label>
+        <input type="url" id="itemFotoUrl" placeholder="https://…" oninput="previewUrl(this)"/>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeItemModal()">Cancelar</button>
+      <button class="btn-confirm" id="itemModalSubmit" onclick="salvarItem()">Adicionar ao Cardápio</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL: ADICIONAR CATEGORIA
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="categoriaModal">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-head">
+      <h3 id="catModalTitle">🏷️ Nova Categoria</h3>
+      <button class="modal-close-btn" onclick="closeCategoriaModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Nome da Categoria *</label>
+        <input type="text" id="catNome" placeholder="Ex: Lanches, Bebidas, Combos…" oninput="updateCatSlug()"/>
+      </div>
+      <div class="field">
+        <label>Ícone (emoji) *</label>
+        <input type="text" id="catIcone" placeholder="🍔" maxlength="4"/>
+      </div>
+      <div class="field">
+        <label>Identificador interno</label>
+        <input type="text" id="catSlug" placeholder="ex: lanches" style="opacity:0.6"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeCategoriaModal()">Cancelar</button>
+      <button class="btn-confirm" id="catModalSubmit" onclick="salvarCategoria()">Criar Categoria</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+// ══════════════════════════════════════
+//  ESTADO GLOBAL
+// ══════════════════════════════════════
+let allItems      = [];   // todos os itens do banco
+let allCategories = [];   // categorias disponíveis
+let draftItems    = [];   // itens adicionados/editados mas ainda não salvos
+let pendingDeletes = [];  // IDs de itens marcados para exclusão
+let editingId     = null; // id do item que está sendo editado
+let currentFilter = 'todos';
+
+// ══════════════════════════════════════
+//  UTILITÁRIOS
+// ══════════════════════════════════════
+function showToast(msg) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+}
+
+function logout() {
+  if (window.supabase) window.supabase.auth.signOut();
+  localStorage.removeItem('ciUser');
+  window.location.href = 'index.html';
+}
+
+function formatBRL(v) {
+  return parseFloat(v || 0).toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+}
+
+function slugify(str) {
+  return str.normalize('NFD').replace(/\p{Diacritic}/gu, '')
+    .toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+}
+
+// ══════════════════════════════════════
+//  VERIFICAÇÃO DE ACESSO
+// ══════════════════════════════════════
+async function checkAccess() {
+  if (!window.supabase) {
+    document.getElementById('pageLoading').style.display = 'none';
+    document.getElementById('accessDenied').style.display = 'flex';
+    return;
+  }
+  const { data: { session } } = await window.supabase.auth.getSession();
+  if (!session) {
+    document.getElementById('pageLoading').style.display = 'none';
+    document.getElementById('accessDenied').style.display = 'flex';
+    return;
+  }
+  const { data: profile } = await window.supabase
+    .from('profiles').select('role, nome').eq('id', session.user.id).single();
+  if (!profile || profile.role !== 'admin') {
+    document.getElementById('pageLoading').style.display = 'none';
+    document.getElementById('accessDenied').style.display = 'flex';
+    return;
+  }
+  // Acesso OK
+  const nome = profile.nome || session.user.email.split('@')[0];
+  document.getElementById('navUserName').textContent = nome;
+  document.getElementById('navAvatar').textContent   = nome[0].toUpperCase();
+  document.getElementById('pageLoading').style.display  = 'none';
+  document.getElementById('adminContent').style.display = 'block';
+
+  await loadCategorias();
+  await loadItens();
+}
+
+// ══════════════════════════════════════
+//  CARREGAR DADOS
+// ══════════════════════════════════════
+async function loadCategorias() {
+  // Tenta buscar de uma tabela categories, senão usa as do menu
+  const { data, error } = await window.supabase
+    .from('categories').select('*').order('nome');
+
+  if (!error && data) {
+    allCategories = data;
+  } else {
+    // Fallback: extrai categorias únicas do próprio menu
+    const { data: menuData } = await window.supabase.from('menu').select('category').neq('category', null);
+    const unique = [...new Set((menuData||[]).map(m => m.category))];
+    allCategories = unique.map(c => ({ id: c, nome: c, slug: slugify(c), icone: '🍽️' }));
+  }
+  buildFilterBar();
+  buildCategorySelect();
+}
+
+async function loadItens() {
+  const { data, error } = await window.supabase
+    .from('menu').select('*').order('category').order('name');
+  if (error) {
+    showToast('❌ Erro ao carregar itens: ' + error.message);
+    allItems = [];
+  } else {
+    allItems = data || [];
+  }
+  renderGrid();
+}
+
+// ══════════════════════════════════════
+//  FILTROS
+// ══════════════════════════════════════
+function buildFilterBar() {
+  const bar = document.getElementById('filterBar');
+  bar.innerHTML = '<button class="filter-pill active" data-cat="todos" onclick="filterItems(\'todos\', this)">🍽️ Todos</button>';
+  allCategories.forEach(c => {
+    const slug = c.slug || c.id || slugify(c.nome);
+    const wrap = document.createElement('div');
+    wrap.className = 'filter-pill-wrap';
+
+    const pill = document.createElement('button');
+    pill.className = 'filter-pill';
+    pill.dataset.cat = slug;
+    pill.onclick = function() { filterItems(slug, pill); };
+    pill.textContent = (c.icone || '🍽️') + ' ' + c.nome;
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'pill-del';
+    delBtn.title = 'Remover categoria';
+    delBtn.textContent = '✕';
+    delBtn.onclick = function(e) { e.stopPropagation(); deletarCategoria(c); };
+
+    wrap.appendChild(pill);
+    wrap.appendChild(delBtn);
+    bar.appendChild(wrap);
+  });
+}
+
+function buildCategorySelect() {
+  const sel = document.getElementById('itemCategoria');
+  sel.innerHTML = '<option value="">Selecionar…</option>';
+  allCategories.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.slug || c.id || slugify(c.nome);
+    opt.textContent = (c.icone || '') + ' ' + c.nome;
+    sel.appendChild(opt);
+  });
+}
+
+function filterItems(cat, el) {
+  currentFilter = cat;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderGrid();
+}
+
+// ══════════════════════════════════════
+//  RENDERIZAÇÃO
+// ══════════════════════════════════════
+function renderGrid() {
+  const grid = document.getElementById('cardapioGrid');
+  let source = [...allItems, ...draftItems.filter(d => !allItems.find(a => a.id === d.id))];
+
+  if (currentFilter !== 'todos') {
+    source = source.filter(item => (item.category || item.slug) === currentFilter);
+  }
+
+  if (source.length === 0) {
+    grid.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🍽️</div>
+      <p>Nenhum item aqui ainda.<br>Clique em <strong>+ Adicionar Item</strong> para começar!</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = source.map(item => {
+    const isDraft   = draftItems.some(d => d.id === item.id && !item._saved);
+    const isPending = pendingDeletes.includes(String(item.id));
+
+    // Escolhe a melhor URL de imagem
+    const imgSrc = item.image_url && !item.image_url.startsWith('data:')
+      ? item.image_url
+      : (item.image_url && item.image_url.startsWith('data:') ? item.image_url : null);
+
+    const img = imgSrc
+      ? `<img src="${imgSrc}" alt="${item.name || item.nome}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="no-img" style="display:none">🍽️</div>`
+      : `<div class="no-img">🍽️</div>`;
+
+    const nome  = item.name || item.nome || '—';
+    const desc  = item.description || item.descricao || '';
+    const preco = formatBRL(item.price || item.preco);
+    const cat   = item.category || '—';
+    const ativo = item.is_active !== false;
+
+    return `<div class="menu-admin-card${isDraft ? ' draft' : ''}${isPending ? ' pending-del' : ''}" id="card-${item.id}">
+      ${isDraft ? '<div class="draft-tag">Rascunho</div>' : ''}
+      ${isPending ? '<div class="draft-tag" style="background:#7f1d1d;color:#fca5a5">🗑️ Aguardando exclusão</div>' : ''}
+      <div class="card-img-wrap">${img}</div>
+      <div class="card-body">
+        <div class="card-category">${cat}</div>
+        <div class="card-name">${nome}</div>
+        <div class="card-desc">${desc || '<em style="opacity:0.4">Sem descrição</em>'}</div>
+        <div class="card-footer-row">
+          <div class="card-price">${preco}</div>
+          <div class="card-actions">
+            ${!isPending ? `<div class="card-toggle" onclick="toggleAtivo('${item.id}', ${ativo})" title="${ativo ? 'Publicado' : 'Rascunho'}">
+              <div class="toggle-sw ${ativo ? 'on' : ''}" id="toggle-${item.id}"></div>
+            </div>` : ''}
+            ${!isPending ? `<button class="card-btn edit" onclick="editarItem('${item.id}')" title="Editar">✏️</button>` : ''}
+            ${isPending
+              ? `<button class="card-btn" onclick="cancelarDelecao('${item.id}')" title="Cancelar exclusão" style="border-color:#f59e0b;color:#f59e0b">↩</button>`
+              : `<button class="card-btn del" onclick="deletarItem('${item.id}')" title="Remover">🗑️</button>`}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateDraftBanner();
+}
+
+function updateDraftBanner() {
+  const banner    = document.getElementById('draftBanner');
+  const btnSalvar = document.getElementById('btnSalvar');
+  const total = draftItems.length + pendingDeletes.length;
+  if (total > 0) {
+    banner.classList.add('active');
+    const partes = [];
+    if (draftItems.length > 0) partes.push(`<strong>${draftItems.length}</strong> item(ns) em rascunho`);
+    if (pendingDeletes.length > 0) partes.push(`<strong>${pendingDeletes.length}</strong> item(ns) para excluir`);
+    banner.querySelector('span').innerHTML = '⚠️ Você tem ' + partes.join(' e ') + '. Clique em "Salvar Cardápio" para aplicar.';
+    btnSalvar.disabled = false;
+  } else {
+    banner.classList.remove('active');
+    btnSalvar.disabled = true;
+  }
+}
+
+// ══════════════════════════════════════
+//  MODAL DE ITEM
+// ══════════════════════════════════════
+function openItemModal(itemData = null) {
+  editingId = itemData?.id || null;
+  document.getElementById('itemModalTitle').textContent = editingId ? '✏️ Editar Item' : '➕ Adicionar Item';
+  document.getElementById('itemModalSubmit').textContent = editingId ? 'Salvar Alterações' : 'Adicionar ao Cardápio';
+
+  // Preenche os campos
+  document.getElementById('itemNome').value      = itemData?.name || itemData?.nome || '';
+  document.getElementById('itemDesc').value      = itemData?.description || itemData?.descricao || '';
+  document.getElementById('itemPreco').value     = itemData?.price || itemData?.preco || '';
+  document.getElementById('itemFotoUrl').value   = itemData?.image_url || '';
+  document.getElementById('itemCategoria').value = itemData?.category || '';
+  document.getElementById('itemAtivo').value     = String(itemData?.is_active ?? true);
+
+  // Preview de imagem
+  const preview = document.getElementById('imgPreview');
+  const icon    = document.getElementById('uploadIcon');
+  const text    = document.getElementById('uploadText');
+  if (itemData?.image_url) {
+    preview.src   = itemData.image_url;
+    preview.style.display  = 'block';
+    icon.style.display     = 'none';
+    text.style.display     = 'none';
+  } else {
+    preview.src   = '';
+    preview.style.display  = 'none';
+    icon.style.display     = 'block';
+    text.style.display     = 'block';
+  }
+
+  document.getElementById('itemModal').classList.add('open');
+}
+
+function closeItemModal() {
+  document.getElementById('itemModal').classList.remove('open');
+  editingId = null;
+}
+
+function previewImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('imgPreview');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    document.getElementById('uploadIcon').style.display = 'none';
+    document.getElementById('uploadText').style.display = 'none';
+    document.getElementById('itemFotoUrl').value = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewUrl(input) {
+  const url = input.value.trim();
+  const preview = document.getElementById('imgPreview');
+  if (url) {
+    preview.src = url;
+    preview.style.display = 'block';
+    document.getElementById('uploadIcon').style.display = 'none';
+    document.getElementById('uploadText').style.display = 'none';
+    document.getElementById('itemFoto').value = '';
+  }
+}
+
+async function salvarItem() {
+  const nome   = document.getElementById('itemNome').value.trim();
+  const cat    = document.getElementById('itemCategoria').value;
+  const preco  = parseFloat(document.getElementById('itemPreco').value);
+  const desc   = document.getElementById('itemDesc').value.trim();
+  const ativo  = document.getElementById('itemAtivo').value === 'true';
+  const urlImg = document.getElementById('itemFotoUrl').value.trim();
+  const fileInput = document.getElementById('itemFoto');
+
+  if (!nome) { showToast('⚠️ Preencha o nome do item.'); return; }
+  if (!cat)  { showToast('⚠️ Selecione uma categoria.');  return; }
+  if (!preco || preco <= 0) { showToast('⚠️ Informe um preço válido.'); return; }
+
+  const btn = document.getElementById('itemModalSubmit');
+  btn.disabled = true;
+  btn.textContent = 'Salvando…';
+
+  // Upload de imagem se arquivo selecionado
+  let imageUrl = urlImg;
+  if (fileInput.files[0] && window.supabase) {
+    const file = fileInput.files[0];
+    const ext  = file.name.split('.').pop().toLowerCase();
+    const path = `menu/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+    try {
+      const { error: uploadError } = await window.supabase.storage
+        .from('images').upload(path, file, { upsert: true });
+      if (!uploadError) {
+        const { data: urlData } = window.supabase.storage.from('images').getPublicUrl(path);
+        imageUrl = urlData.publicUrl;
+      } else {
+        // Bucket não existe: usa data URL temporariamente
+        console.warn('Storage não disponível, usando URL externa ou data URL.');
+        imageUrl = document.getElementById('imgPreview').src || null;
+        // Avisa sobre o problema
+        if (imageUrl && imageUrl.startsWith('data:')) {
+          showToast('⚠️ Bucket de imagens não configurado. Use uma URL externa para a foto.');
+        }
+      }
+    } catch(e) {
+      imageUrl = urlImg || null;
+    }
+  } else if (!imageUrl) {
+    // Pega o src do preview (pode ser data: ou URL externa)
+    const previewSrc = document.getElementById('imgPreview').src;
+    imageUrl = (previewSrc && previewSrc !== window.location.href) ? previewSrc : null;
+    // Não salva data: URLs puras no banco (seriam muito grandes)
+    if (imageUrl && imageUrl.startsWith('data:')) imageUrl = null;
+  }
+
+  const payload = {
+    name:        nome,
+    category:    cat,
+    price:       preco,
+    description: desc,
+    image_url:   imageUrl || null,
+    is_active:   ativo
+  };
+
+  if (editingId) {
+    // Edição de item existente — vai para rascunho
+    const idx = allItems.findIndex(i => i.id === editingId);
+    if (idx >= 0) {
+      allItems[idx] = { ...allItems[idx], ...payload };
+    }
+    // Marca para sincronizar
+    const existingDraft = draftItems.find(d => d.id === editingId);
+    if (existingDraft) {
+      Object.assign(existingDraft, payload);
+    } else {
+      draftItems.push({ id: editingId, ...payload, _edit: true });
+    }
+    showToast('✏️ Item editado! Clique em "Salvar Cardápio" para aplicar.');
+  } else {
+    // Novo item — adiciona como rascunho com id temporário
+    const tempId = 'draft_' + Date.now();
+    draftItems.push({ id: tempId, ...payload, _new: true });
+    allItems.push({ id: tempId, ...payload });
+    showToast('✅ Item adicionado! Clique em "Salvar Cardápio" para publicar.');
+  }
+
+  btn.disabled = false;
+  btn.textContent = editingId ? 'Salvar Alterações' : 'Adicionar ao Cardápio';
+  closeItemModal();
+  renderGrid();
+}
+
+function editarItem(id) {
+  const item = allItems.find(i => String(i.id) === String(id));
+  if (item) openItemModal(item);
+}
+
+async function toggleAtivo(id, atual) {
+  const novoStatus = !atual;
+  const toggle = document.getElementById('toggle-' + id);
+  if (toggle) toggle.classList.toggle('on', novoStatus);
+
+  if (!String(id).startsWith('draft_')) {
+    const { error } = await window.supabase.from('menu').update({ is_active: novoStatus }).eq('id', id);
+    if (error) { showToast('❌ Erro ao atualizar.'); return; }
+    const item = allItems.find(i => String(i.id) === String(id));
+    if (item) item.is_active = novoStatus;
+    showToast(novoStatus ? '✅ Item publicado no site!' : '⏸️ Item ocultado do site.');
+  }
+}
+
+function deletarItem(id) {
+  if (!confirm('Marcar este item para exclusão? A exclusão será aplicada ao clicar em "Salvar Cardápio".')) return;
+
+  const idStr = String(id);
+
+  if (idStr.startsWith('draft_')) {
+    // Rascunho local: remove imediatamente sem precisar salvar
+    draftItems = draftItems.filter(d => String(d.id) !== idStr);
+    allItems   = allItems.filter(i => String(i.id) !== idStr);
+    showToast('🗑️ Rascunho removido.');
+    renderGrid();
+    return;
+  }
+
+  // Item existente no banco: adiciona à fila de exclusão
+  if (!pendingDeletes.includes(idStr)) {
+    pendingDeletes.push(idStr);
+  }
+  showToast('🗑️ Item marcado para exclusão. Clique em "Salvar Cardápio" para confirmar.');
+  renderGrid();
+}
+
+function cancelarDelecao(id) {
+  pendingDeletes = pendingDeletes.filter(pid => pid !== String(id));
+  showToast('↩ Exclusão cancelada.');
+  renderGrid();
+}
+
+// ══════════════════════════════════════
+//  SALVAR CARDÁPIO (PUBLICAR RASCUNHOS)
+// ══════════════════════════════════════
+async function salvarCardapio() {
+  if (draftItems.length === 0 && pendingDeletes.length === 0) return;
+  const btn = document.getElementById('btnSalvar');
+  btn.disabled = true;
+  btn.textContent = '⏳ Salvando…';
+
+  let erros = 0;
+
+  // 1. Processa novos itens e edições
+  for (const draft of draftItems) {
+    const { _new, _edit, id, ...payload } = draft;
+    if (_new) {
+      const { error } = await window.supabase.from('menu').insert(payload);
+      if (error) { erros++; console.error('INSERT error:', error); }
+    } else if (_edit) {
+      const { error } = await window.supabase.from('menu').update(payload).eq('id', id);
+      if (error) { erros++; console.error('UPDATE error:', error); }
+    }
+  }
+
+  // 2. Processa exclusões pendentes
+  for (const id of pendingDeletes) {
+    const { error } = await window.supabase.from('menu').delete().eq('id', id);
+    if (error) { erros++; console.error('DELETE error:', error); }
+    else {
+      allItems = allItems.filter(i => String(i.id) !== id);
+    }
+  }
+
+  if (erros === 0) {
+    showToast('🎉 Cardápio salvo e publicado com sucesso!');
+    draftItems = [];
+    pendingDeletes = [];
+    await loadItens();
+  } else {
+    showToast(`⚠️ ${erros} operação(oes) falharam. Verifique o console e tente novamente.`);
+    draftItems = [];
+    pendingDeletes = [];
+    await loadItens();
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✓ Salvar Cardápio';
+}
+
+// ══════════════════════════════════════
+//  MODAL DE CATEGORIA
+// ══════════════════════════════════════
+function openCategoriaModal() {
+  document.getElementById('catNome').value  = '';
+  document.getElementById('catIcone').value = '';
+  document.getElementById('catSlug').value  = '';
+  document.getElementById('categoriaModal').classList.add('open');
+}
+
+function closeCategoriaModal() {
+  document.getElementById('categoriaModal').classList.remove('open');
+}
+
+function updateCatSlug() {
+  const nome = document.getElementById('catNome').value;
+  document.getElementById('catSlug').value = slugify(nome);
+}
+
+async function salvarCategoria() {
+  const nome  = document.getElementById('catNome').value.trim();
+  const icone = document.getElementById('catIcone').value.trim();
+  const slug  = document.getElementById('catSlug').value.trim() || slugify(nome);
+
+  if (!nome)  { showToast('⚠️ Informe o nome da categoria.'); return; }
+  if (!icone) { showToast('⚠️ Adicione um emoji para a categoria.'); return; }
+
+  const btn = document.getElementById('catModalSubmit');
+  btn.disabled = true;
+  btn.textContent = 'Criando…';
+
+  // Tenta inserir na tabela categories
+  const { error } = await window.supabase
+    .from('categories').insert({ nome, icone, slug });
+
+  if (error) {
+    // Se não existir a tabela, cria a categoria localmente para uso imediato
+    allCategories.push({ id: slug, nome, icone, slug });
+    showToast('🏷️ Categoria criada localmente! (Tabela categories não encontrada no banco)');
+  } else {
+    allCategories.push({ id: slug, nome, icone, slug });
+    showToast('🏷️ Categoria "' + nome + '" criada com sucesso!');
+  }
+
+  buildFilterBar();
+  buildCategorySelect();
+  btn.disabled = false;
+  btn.textContent = 'Criar Categoria';
+  closeCategoriaModal();
+}
+
+async function deletarCategoria(cat) {
+  const slug = cat.slug || cat.id || slugify(cat.nome);
+  const itensNaCategoria = allItems.filter(i => i.category === slug);
+
+  if (itensNaCategoria.length > 0) {
+    if (!confirm(`A categoria "${cat.nome}" tem ${itensNaCategoria.length} item(ns) vinculado(s).\n\nSe remover, os itens ficarão sem categoria.\nDeseja continuar?`)) return;
+  } else {
+    if (!confirm(`Remover a categoria "${cat.nome}"? Esta ação não pode ser desfeita.`)) return;
+  }
+
+  // Remove do banco de dados
+  const { error } = await window.supabase
+    .from('categories')
+    .delete()
+    .eq('slug', slug);
+
+  if (error && !error.message.includes('does not exist')) {
+    showToast('❌ Erro ao remover: ' + error.message);
+    return;
+  }
+
+  // Remove localmente
+  allCategories = allCategories.filter(c => (c.slug || c.id) !== slug);
+  buildFilterBar();
+  buildCategorySelect();
+
+  // Volta o filtro para "Todos" se estava na categoria deletada
+  if (currentFilter === slug) {
+    currentFilter = 'todos';
+    renderGrid();
+  }
+
+  showToast(`🗑️ Categoria "${cat.nome}" removida com sucesso!`);
+}
+
+// ══════════════════════════════════════
+//  FECHAR MODAIS COM ESC
+// ══════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeItemModal();
+    closeCategoriaModal();
+  }
+});
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeItemModal();
+      closeCategoriaModal();
+    }
+  });
+});
+
+// ══════════════════════════════════════
+//  INICIALIZAR
+// ══════════════════════════════════════
+checkAccess();
+</script>
+</body>
+</html>

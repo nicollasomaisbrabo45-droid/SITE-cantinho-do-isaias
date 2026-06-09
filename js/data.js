@@ -46,23 +46,26 @@ async function fetchMenu() {
   }
 
   try {
-    const { data, error } = await supabase.from('menu').select('*');
+    const { data, error } = await supabase.from('menu').select('*').order('category').order('name');
     if (error) throw error;
     
     if (data && data.length > 0) {
       // Mapear colunas do banco para o formato usado pelo front
-      globalMenu = data.map(item => ({
-        id: item.id,
-        name: item.name,
-        desc: item.description,
-        price: Number(item.price),
-        oldPrice: item.old_price ? Number(item.old_price) : null,
-        emoji: item.emoji || '🍔',
-        cat: item.category,
-        rating: Number(item.rating) || 5.0,
-        badge: item.badge,
-        reviews: Math.floor(Math.random() * 200) + 10 // Simula quantidade de reviews
-      }));
+      globalMenu = data
+        .filter(item => item.is_active !== false) // Só pega os ativos
+        .map(item => ({
+          id: item.id,
+          name: item.name,
+          desc: item.description,
+          price: Number(item.price),
+          oldPrice: item.old_price ? Number(item.old_price) : null,
+          emoji: item.emoji || '🍔',
+          imageUrl: item.image_url || null,
+          cat: item.category,
+          rating: Number(item.rating) || 5.0,
+          badge: item.badge,
+          reviews: Math.floor(Math.random() * 200) + 10 // Simula quantidade de reviews
+        }));
       return globalMenu;
     } else {
       console.log('Menu no Supabase está vazio. Usando fallback.');
@@ -73,6 +76,24 @@ async function fetchMenu() {
     console.error('Erro ao buscar o menu no Supabase:', error);
     globalMenu = FALLBACK_MENU;
     return globalMenu;
+  }
+}
+
+let globalCategories = [];
+
+/**
+ * Busca as categorias no Supabase.
+ */
+async function fetchCategories() {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase.from('categories').select('*').order('nome');
+    if (error) throw error;
+    globalCategories = data || [];
+    return globalCategories;
+  } catch (error) {
+    console.error('Erro ao buscar categorias:', error);
+    return [];
   }
 }
 
