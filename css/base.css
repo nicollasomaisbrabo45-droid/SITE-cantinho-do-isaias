@@ -1,0 +1,161 @@
+/* ═══════════════════════════════════════
+   BASE — base.css
+   Reset global, body, scrollbar e textura
+═══════════════════════════════════════ */
+
+/* ─── RESET ─── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--cream);
+  color: var(--charcoal);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--cream); }
+::-webkit-scrollbar-thumb { background: var(--fire); border-radius: 10px; }
+
+/* ─── TEXTURA DE FUNDO ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FF2D00' fill-opacity='0.018'%3E%3Ccircle cx='40' cy='40' r='2'/%3E%3Ccircle cx='0' cy='0' r='2'/%3E%3Ccircle cx='80' cy='0' r='2'/%3E%3Ccircle cx='0' cy='80' r='2'/%3E%3Ccircle cx='80' cy='80' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── SEÇÕES COMUNS ─── */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.4rem;
+}
+.section-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fire);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.section-label::before {
+  content: '';
+  width: 20px;
+  height: 2px;
+  background: var(--fire);
+  border-radius: 2px;
+}
+.section-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 2rem;
+  letter-spacing: 0.04em;
+  color: var(--charcoal);
+  line-height: 1;
+}
+.section-title em {
+  color: var(--fire);
+  font-style: normal;
+}
+.section-count {
+  font-size: 0.83rem;
+  color: var(--ash-light);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* ─── BOTÕES GLOBAIS ─── */
+.btn-fire {
+  padding: 14px 30px;
+  background: linear-gradient(135deg, var(--fire), var(--ember));
+  color: #fff;
+  border: none;
+  border-radius: var(--rpill);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 4px 4px 0 var(--gold), 0 8px 24px rgba(255, 45, 0, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+.btn-fire::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.btn-fire:hover::before { opacity: 1; }
+.btn-fire:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 7px 7px 0 var(--gold), 0 12px 32px rgba(255, 45, 0, 0.45);
+}
+.btn-fire:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--gold);
+}
+
+.btn-ghost {
+  padding: 14px 30px;
+  background: transparent;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--rpill);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn-ghost:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(255, 184, 0, 0.08);
+}
+
+/* ─── ANIMAÇÕES GLOBAIS ─── */
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: none; }
+}
+.fade-in { animation: fadeIn 0.4s ease both; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+.pulse { animation: pulseBounce 0.5s ease; }
+@keyframes pulseBounce {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.25); }
+}

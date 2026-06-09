@@ -1,0 +1,41 @@
+/* ═══════════════════════════════════════
+   DESIGN TOKENS — variables.css
+   Edite aqui para mudar cores, sombras
+   e bordas em todo o site.
+═══════════════════════════════════════ */
+:root {
+  /* Cores principais */
+  --fire:        #FF2D00;
+  --fire-dark:   #CC2400;
+  --ember:       #FF6B1A;
+  --gold:        #FFB800;
+  --gold-light:  #FFD055;
+
+  /* Backgrounds */
+  --cream:       #FFF8F0;
+  --charcoal:    #1A0F05;
+  --smoke:       #2E1A0A;
+  --surface:     #FFFCF8;
+  --white:       #FFFFFF;
+
+  /* Neutros */
+  --ash:         #6B4C30;
+  --ash-light:   #9B7A5A;
+
+  /* Bordas */
+  --border:      rgba(255, 45, 0, 0.10);
+  --border-gold: rgba(255, 184, 0, 0.25);
+
+  /* Sombras */
+  --shadow-sm:   0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md:   0 8px 32px rgba(255, 45, 0, 0.12);
+  --shadow-lg:   0 20px 60px rgba(0, 0, 0, 0.20);
+
+  /* Raios de borda */
+  --r:           18px;
+  --r-sm:        10px;
+  --rpill:       999px;
+
+  /* Layout */
+  --nav-h:       68px;
+}
