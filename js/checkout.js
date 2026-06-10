@@ -73,6 +73,11 @@ function confirmLocation() {
 
 async function checkout() {
   if (cart.length === 0) return;
+
+  if (typeof isStoreOpen !== 'undefined' && !isStoreOpen) {
+    showToast('🔴 A loja está fechada no momento. Não é possível realizar novos pedidos.');
+    return;
+  }
   
   if (!locationData) { 
     openLocationModal(); 

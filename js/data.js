@@ -124,10 +124,12 @@ async function fetchReviews() {
   }
 }
 
+let isStoreOpen = true;
+
 /**
- * Busca a logo no Supabase ou LocalStorage
+ * Busca a logo e o status da loja (aberto/fechado) no Supabase
  */
-async function fetchLogo() {
+async function fetchStoreSettings() {
   let logoUrl = 'img/logo.jpg'; // default
 
   // Fallback rápido local
@@ -136,13 +138,20 @@ async function fetchLogo() {
 
   if (window.supabase) {
     try {
-      const { data, error } = await window.supabase.from('settings').select('value').eq('id', 'site_logo').single();
-      if (!error && data && data.value) {
-        logoUrl = data.value;
-        localStorage.setItem('ci_site_logo', logoUrl); // Atualiza o cache local
+      const { data, error } = await window.supabase.from('settings').select('id, value');
+      if (!error && data) {
+        data.forEach(setting => {
+          if (setting.id === 'site_logo' && setting.value) {
+            logoUrl = setting.value;
+            localStorage.setItem('ci_site_logo', logoUrl); // Atualiza o cache local
+          }
+          if (setting.id === 'site_status') {
+            isStoreOpen = (setting.value === 'open');
+          }
+        });
       }
     } catch(e) {
-      console.warn('Logo customizada não encontrada ou erro na busca.');
+      console.warn('Configurações não encontradas ou erro na busca.');
     }
   }
 
@@ -151,4 +160,9 @@ async function fetchLogo() {
   logoImgs.forEach(img => {
     img.src = logoUrl;
   });
+  
+  // Update status UI Se existir a função (definida no main.js)
+  if (typeof updateStoreStatusUI === 'function') {
+    updateStoreStatusUI();
+  }
 }

@@ -4,10 +4,23 @@
    e inicializa eventos globais.
 ═══════════════════════════════════════ */
 
+// ── Funções de Interface Global ──────────────────────────
+function updateStoreStatusUI() {
+  const badge = document.getElementById('storeStatusBadge');
+  if (!badge) return;
+  if (typeof isStoreOpen !== 'undefined' && isStoreOpen) {
+    badge.className = 'store-badge open';
+    badge.innerHTML = 'Aberto Agora';
+  } else {
+    badge.className = 'store-badge closed';
+    badge.innerHTML = 'Fechado';
+  }
+}
+
 window.addEventListener('load', async () => {
-  // 0. Busca a logo customizada (se houver)
-  if (typeof fetchLogo === 'function') {
-    await fetchLogo();
+  // 0. Busca a logo e o status da loja
+  if (typeof fetchStoreSettings === 'function') {
+    await fetchStoreSettings();
   }
 
   // 1. Tenta recuperar o usuário local

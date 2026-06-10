@@ -18,6 +18,23 @@
 <link rel="stylesheet" href="css/reviews.css"/>
 <link rel="stylesheet" href="css/footer.css"/>
 <link rel="stylesheet" href="css/responsive.css"/>
+<style>
+  .store-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    color: #fff;
+    text-transform: uppercase;
+    margin-top: 3px;
+    display: inline-block;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .store-badge.open { background: #27ae60; opacity: 1; box-shadow: 0 0 8px rgba(39, 174, 96, 0.4); }
+  .store-badge.closed { background: #e74c3c; opacity: 1; box-shadow: 0 0 8px rgba(231, 76, 60, 0.4); }
+</style>
 </head>
 <body>
 
@@ -27,8 +44,9 @@
 <nav class="navbar" role="navigation" aria-label="Menu principal">
   <a href="#" class="nav-logo" id="navLogo">
     <img src="img/logo.jpg" alt="Cantinho do Isaias Logo" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--fire); box-shadow: 0 0 8px rgba(255,69,0,0.6);" />
-    <div>
+    <div style="display: flex; flex-direction: column; align-items: flex-start;">
       <div class="nav-logo-text">Cantinho do <em>Isaias</em></div>
+      <div id="storeStatusBadge" class="store-badge"></div>
     </div>
   </a>
 

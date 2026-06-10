@@ -71,6 +71,26 @@
     margin-bottom: 2.5rem;
     flex-wrap: wrap;
   }
+  .admin-action-bar {
+    display: flex; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap;
+  }
+  
+  .btn-store-status {
+    padding: 0.6rem 1.4rem; border-radius: 999px; font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem; font-weight: 700; color: #fff; cursor: pointer; border: none;
+    transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase;
+    letter-spacing: 0.05em; margin-left: auto;
+  }
+  .btn-store-status.open {
+    background: #27ae60; box-shadow: 0 0 15px rgba(39, 174, 96, 0.4);
+  }
+  .btn-store-status.open:hover { background: #2ecc71; transform: scale(1.03); }
+  .btn-store-status.closed {
+    background: #e74c3c; box-shadow: 0 0 15px rgba(231, 76, 60, 0.4);
+  }
+  .btn-store-status.closed:hover { background: #c0392b; transform: scale(1.03); }
+
+  /* ── RESPONSIVE ── */
   .admin-header-left h1 {
     font-family: 'Bebas Neue', sans-serif;
     font-size: 2.5rem;
@@ -324,12 +344,17 @@
   <div id="adminPanel" style="display:none">
     <a href="index.html" class="admin-back-link">← Voltar ao site</a>
 
-    <div class="admin-header">
+    <div class="admin-header" style="flex-wrap: wrap; gap: 1rem;">
       <div class="admin-header-left">
         <h1><span class="gear-spin">⚙️</span> Gerenciamento</h1>
         <p>Bem-vindo ao painel de controle, <strong id="adminName">Admin</strong></p>
       </div>
-      <span class="admin-badge">★ Administrador</span>
+      <div style="display:flex; align-items:center; gap:1rem; margin-left:auto;">
+        <button class="btn-store-status open" id="btnStoreStatus" onclick="toggleStoreStatus()">
+          ⏳ Carregando...
+        </button>
+        <span class="admin-badge" style="margin-left:0;">★ Administrador</span>
+      </div>
     </div>
 
     <!-- STATS -->
@@ -760,7 +785,59 @@ async function fetchAdminLogo() {
   if (navImg) navImg.src = logoUrl;
 }
 
+// ── Controle de Loja Aberta/Fechada ─────────────────────
+let isStoreOpenAdmin = true;
+
+async function fetchStoreStatusAdmin() {
+  if (!window.supabase) return;
+  try {
+    const { data } = await window.supabase.from('settings').select('value').eq('id', 'site_status').single();
+    if (data && data.value) {
+      isStoreOpenAdmin = data.value === 'open';
+    } else {
+      isStoreOpenAdmin = true; // default aberto
+    }
+  } catch(e) {
+    console.warn('Status não encontrado no DB, assumindo aberto.');
+  }
+  updateStoreBtnUI();
+}
+
+function updateStoreBtnUI() {
+  const btn = document.getElementById('btnStoreStatus');
+  if (!btn) return;
+  
+  if (isStoreOpenAdmin) {
+    btn.className = 'btn-store-status open';
+    btn.innerHTML = 'Aberto Agora';
+  } else {
+    btn.className = 'btn-store-status closed';
+    btn.innerHTML = 'Fechado';
+  }
+}
+
+async function toggleStoreStatus() {
+  if (!window.supabase) return;
+  const btn = document.getElementById('btnStoreStatus');
+  btn.innerHTML = '⏳ Salvando...';
+  
+  const novoStatus = isStoreOpenAdmin ? 'closed' : 'open';
+  
+  try {
+    const { error } = await window.supabase.from('settings').upsert({ id: 'site_status', value: novoStatus });
+    if (error) throw error;
+    
+    isStoreOpenAdmin = (novoStatus === 'open');
+    updateStoreBtnUI();
+    showToast(`Loja definida como ${isStoreOpenAdmin ? 'ABERTA' : 'FECHADA'}!`);
+  } catch(e) {
+    showToast('❌ Erro ao mudar status da loja.');
+    updateStoreBtnUI();
+  }
+}
+
 // ── Init ─────────────────────────────────────────────────
+fetchStoreStatusAdmin();
 fetchAdminLogo();
 checkAdminAccess();
 </script>

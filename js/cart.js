@@ -6,14 +6,14 @@
 let cart = [];
 
 function addToCart(id) {
-  const item = globalMenu.find(m => m.id === id);
+  const item = globalMenu.find(m => String(m.id) === String(id));
   if (!item) return;
 
-  const existing = cart.find(c => c.id === id);
+  const existing = cart.find(c => String(c.id) === String(id));
   if (existing) existing.qty++;
   else cart.push({ ...item, qty: 1 });
 
-  renderQtyControl(id, cart.find(c => c.id === id).qty);
+  renderQtyControl(id, cart.find(c => String(c.id) === String(id)).qty);
   updateCartUI();
   showToast(`✅ ${item.name} adicionado!`);
 
@@ -25,19 +25,19 @@ function addToCart(id) {
 }
 
 function changeQty(id, delta) {
-  const idx = cart.findIndex(c => c.id === id);
+  const idx = cart.findIndex(c => String(c.id) === String(id));
   if (idx === -1) return;
 
   cart[idx].qty += delta;
   if (cart[idx].qty <= 0) cart.splice(idx, 1);
 
-  renderQtyControl(id, cart.find(c => c.id === id)?.qty || 0);
+  renderQtyControl(id, cart.find(c => String(c.id) === String(id))?.qty || 0);
   updateCartUI();
   renderCartItems();
 }
 
 function removeFromCart(id) {
-  cart = cart.filter(c => c.id !== id);
+  cart = cart.filter(c => String(c.id) !== String(id));
   renderQtyControl(id, 0);
   updateCartUI();
   renderCartItems();
