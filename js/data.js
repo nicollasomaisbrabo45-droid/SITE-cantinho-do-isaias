@@ -123,3 +123,32 @@ async function fetchReviews() {
     return FALLBACK_REVIEWS;
   }
 }
+
+/**
+ * Busca a logo no Supabase ou LocalStorage
+ */
+async function fetchLogo() {
+  let logoUrl = 'img/logo.jpg'; // default
+
+  // Fallback rápido local
+  const localLogo = localStorage.getItem('ci_site_logo');
+  if (localLogo) logoUrl = localLogo;
+
+  if (window.supabase) {
+    try {
+      const { data, error } = await window.supabase.from('settings').select('value').eq('id', 'site_logo').single();
+      if (!error && data && data.value) {
+        logoUrl = data.value;
+        localStorage.setItem('ci_site_logo', logoUrl); // Atualiza o cache local
+      }
+    } catch(e) {
+      console.warn('Logo customizada não encontrada ou erro na busca.');
+    }
+  }
+
+  // Atualiza as imagens de logo na página atual
+  const logoImgs = document.querySelectorAll('img[alt*="Logo"], #navLogoImg, .nav-logo img');
+  logoImgs.forEach(img => {
+    img.src = logoUrl;
+  });
+}

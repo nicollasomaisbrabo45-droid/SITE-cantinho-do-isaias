@@ -5,6 +5,11 @@
 ═══════════════════════════════════════ */
 
 window.addEventListener('load', async () => {
+  // 0. Busca a logo customizada (se houver)
+  if (typeof fetchLogo === 'function') {
+    await fetchLogo();
+  }
+
   // 1. Tenta recuperar o usuário local
   const savedUser = localStorage.getItem('ciUser');
   if (savedUser) {

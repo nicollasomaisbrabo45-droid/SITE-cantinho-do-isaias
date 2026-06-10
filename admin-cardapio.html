@@ -320,11 +320,11 @@ body { background: #0d0d0f; min-height: 100vh; color: #fff; }
 
 <!-- NAVBAR -->
 <nav class="navbar" role="navigation" aria-label="Menu principal">
-  <a href="index.html" class="nav-logo">
-    <div class="nav-logo-stamp">🍔</div>
+  <a href="index.html" class="nav-logo" id="navLogo">
+    <img src="img/logo.jpg" alt="Cantinho do Isaias Logo" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--fire); box-shadow: 0 0 8px rgba(255,69,0,0.6);" />
     <div>
       <div class="nav-logo-text">Cantinho do <em>Isaias</em></div>
-      <div class="nav-logo-sub">Cardápio · Admin</div>
+      <div class="nav-logo-sub">Cardápio</div>
     </div>
   </a>
   <div class="nav-actions">
@@ -1088,6 +1088,26 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 // ══════════════════════════════════════
 //  INICIALIZAR
 // ══════════════════════════════════════
+async function fetchAdminLogo() {
+  let logoUrl = 'img/logo.jpg';
+  const localLogo = localStorage.getItem('ci_site_logo');
+  if (localLogo) logoUrl = localLogo;
+
+  if (window.supabase) {
+    try {
+      const { data } = await window.supabase.from('settings').select('value').eq('id', 'site_logo').single();
+      if (data && data.value) {
+        logoUrl = data.value;
+        localStorage.setItem('ci_site_logo', logoUrl);
+      }
+    } catch(e) {}
+  }
+  
+  const navImgs = document.querySelectorAll('.nav-logo img');
+  navImgs.forEach(img => img.src = logoUrl);
+}
+
+fetchAdminLogo();
 checkAccess();
 </script>
 </body>

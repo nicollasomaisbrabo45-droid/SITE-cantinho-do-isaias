@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="css/variables.css"/>
 <link rel="stylesheet" href="css/base.css"/>
 <link rel="stylesheet" href="css/navbar.css"/>
+<link rel="stylesheet" href="css/modals.css"/>
 <style>
   /* ── ADMIN LAYOUT ── */
   body { background: #0d0d0f; min-height: 100vh; }
@@ -284,13 +285,13 @@
 
 <!-- NAVBAR -->
 <nav class="navbar" role="navigation" aria-label="Menu principal">
-  <a href="index.html" class="nav-logo" id="navLogo">
-    <div class="nav-logo-stamp">🍔</div>
+  <div class="nav-logo" id="navLogo" onclick="document.getElementById('logoUploadInput').click()" style="cursor: pointer;" title="Clique para alterar a logo">
+    <img src="img/logo.jpg" id="navLogoImg" alt="Cantinho do Isaias Logo" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--fire); box-shadow: 0 0 8px rgba(255,69,0,0.6);" />
     <div>
       <div class="nav-logo-text">Cantinho do <em>Isaias</em></div>
-      <div class="nav-logo-sub">Painel de Gerenciamento</div>
+      <div class="nav-logo-sub" style="font-size:0.75rem; color:var(--fire); margin-top:2px;">(Clique para editar a logo)</div>
     </div>
-  </a>
+  </div>
   <div class="nav-actions">
     <button class="nav-btn admin-gear-btn" id="adminGearBtn" style="display:flex; background: rgba(245,197,24,0.15); color: gold;" title="Você está no painel admin" aria-label="Painel admin">
       ⚙️
@@ -369,7 +370,6 @@
             <div class="action-card-label">Gerenciar Cardápio</div>
             <div class="action-card-desc">Adicionar, editar ou remover itens</div>
           </div>
-          <span class="tag-soon">Em breve</span>
         </div>
         <div class="action-card" onclick="adminAction('pedidos')">
           <div class="action-card-icon">📦</div>
@@ -441,6 +441,35 @@
   </div><!-- fim #adminPanel -->
 </div>
 
+<!-- LOGO UPLOAD RESOURCES -->
+<input type="file" id="logoUploadInput" accept="image/*" style="display:none" onchange="handleLogoSelect(event)">
+
+<div class="modal-overlay" id="logoCropModal" role="dialog" aria-modal="true">
+  <div class="modal" style="text-align:center;">
+    <div class="modal-header">
+      <h3>Ajustar Nova Logo</h3>
+      <button class="modal-close" onclick="closeModal('logoCropModal')" aria-label="Fechar">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex; flex-direction:column; align-items:center; gap: 1rem;">
+      <p style="font-size:0.85rem; color:var(--ash);">Arraste a imagem para reposicionar e use a barra para dar zoom:</p>
+      
+      <!-- Container do Cropper -->
+      <div id="cropContainer" style="width: 160px; height: 160px; border-radius: 50%; overflow: hidden; border: 3px solid var(--fire); box-shadow: 0 0 15px rgba(255,69,0,0.5); position: relative; cursor: grab; background: #000; margin: 0 auto;">
+        <img id="logoPreviewImg" src="" style="position: absolute; left: 0; top: 0; transform-origin: top left; pointer-events: none;" alt="Preview Logo">
+      </div>
+      
+      <!-- Controle de Zoom -->
+      <div style="width: 100%; max-width: 250px; display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+        <span style="font-size:1.2rem;">🖼️</span>
+        <input type="range" id="logoZoom" min="1" max="3" step="0.05" value="1" style="flex:1;">
+        <span style="font-size:1.5rem;">🔍</span>
+      </div>
+
+      <button class="btn-fire" onclick="confirmLogoUpload()" id="btnConfirmLogo" style="width: 100%; justify-content: center; margin-top: 1rem;">Confirmar Logo ✓</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast-container" id="toastContainer" role="status" aria-live="polite"></div>
 
@@ -457,6 +486,16 @@ function showToast(msg, type = 'info') {
   container.appendChild(t);
   setTimeout(() => t.classList.add('show'), 10);
   setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+}
+
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('open');
+}
+
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('open');
 }
 
 function logout() {
@@ -576,7 +615,153 @@ function adminAction(tipo) {
   showToast(`⚙️ "${tipo}" estará disponível em breve!`);
 }
 
+// ── Logo Upload & Crop ─────────────────────────────────────────
+let rawImgObj = new Image();
+let imgX = 0, imgY = 0, scale = 1;
+let isDragging = false, startX, startY;
+const cropSize = 160;
+
+function handleLogoSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    rawImgObj.onload = function() {
+      // Force natural dimensions on the preview image to prevent global CSS (like max-width: 100%) from breaking the math
+      const img = document.getElementById('logoPreviewImg');
+      img.style.width = rawImgObj.width + 'px';
+      img.style.height = rawImgObj.height + 'px';
+      img.style.maxWidth = 'none';
+
+      // Reset position and calculate initial scale to cover the crop area
+      imgX = 0; imgY = 0;
+      scale = Math.max(cropSize / rawImgObj.width, cropSize / rawImgObj.height);
+      const zoomSlider = document.getElementById('logoZoom');
+      zoomSlider.min = scale;
+      zoomSlider.max = scale * 3;
+      zoomSlider.value = scale;
+      updatePreview();
+      openModal('logoCropModal');
+    };
+    rawImgObj.src = e.target.result;
+    document.getElementById('logoPreviewImg').src = e.target.result;
+    event.target.value = ''; // Limpa o input
+  };
+  reader.readAsDataURL(file);
+}
+
+function updatePreview() {
+  const img = document.getElementById('logoPreviewImg');
+  if (img) img.style.transform = `translate(${imgX}px, ${imgY}px) scale(${scale})`;
+}
+
+document.getElementById('logoZoom').addEventListener('input', function(e) {
+  scale = parseFloat(e.target.value);
+  updatePreview();
+});
+
+// Dragging logic
+const cropContainer = document.getElementById('cropContainer');
+cropContainer.addEventListener('mousedown', dragStart);
+cropContainer.addEventListener('touchstart', dragStart, {passive: false});
+window.addEventListener('mousemove', drag);
+window.addEventListener('touchmove', drag, {passive: false});
+window.addEventListener('mouseup', dragEnd);
+window.addEventListener('touchend', dragEnd);
+
+function dragStart(e) {
+  if (e.target !== cropContainer && e.target.parentNode !== cropContainer) return;
+  e.preventDefault();
+  isDragging = true;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  startX = clientX - imgX;
+  startY = clientY - imgY;
+  cropContainer.style.cursor = 'grabbing';
+}
+
+function drag(e) {
+  if (!isDragging) return;
+  e.preventDefault();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  imgX = clientX - startX;
+  imgY = clientY - startY;
+  updatePreview();
+}
+
+function dragEnd() {
+  isDragging = false;
+  if (cropContainer) cropContainer.style.cursor = 'grab';
+}
+
+async function confirmLogoUpload() {
+  const btn = document.getElementById('btnConfirmLogo');
+  btn.textContent = 'Recortando...';
+  btn.disabled = true;
+
+  // Renderiza no canvas com o corte
+  const canvas = document.createElement('canvas');
+  canvas.width = cropSize;
+  canvas.height = cropSize;
+  const ctx = canvas.getContext('2d');
+  
+  // Limpa o fundo
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, cropSize, cropSize);
+  
+  // Desenha a imagem na posição e escala exatas
+  ctx.drawImage(rawImgObj, imgX, imgY, rawImgObj.width * scale, rawImgObj.height * scale);
+  
+  // Converte para Base64 (JPEG com boa qualidade, poupa espaço em relação ao PNG)
+  const finalBase64 = canvas.toDataURL('image/jpeg', 0.9);
+
+  try {
+    if (window.supabase) {
+      const { error } = await window.supabase
+        .from('settings')
+        .upsert({ id: 'site_logo', value: finalBase64 });
+      if (error) throw error;
+    }
+    
+    // Atualiza a logo localmente na interface em todas as ocorrências
+    document.querySelectorAll('.nav-logo img, #navLogoImg').forEach(img => {
+      img.src = finalBase64;
+    });
+    localStorage.setItem('ci_site_logo', finalBase64);
+    showToast('✅ Logo atualizada com sucesso!');
+    closeModal('logoCropModal');
+  } catch (error) {
+    console.error(error);
+    showToast('❌ Erro ao salvar logo: ' + error.message);
+  } finally {
+    btn.textContent = 'Confirmar Logo ✓';
+    btn.disabled = false;
+  }
+}
+
+async function fetchAdminLogo() {
+  let logoUrl = 'img/logo.jpg';
+  const localLogo = localStorage.getItem('ci_site_logo');
+  if (localLogo) logoUrl = localLogo;
+
+  if (window.supabase) {
+    try {
+      const { data } = await window.supabase.from('settings').select('value').eq('id', 'site_logo').single();
+      if (data && data.value) {
+        logoUrl = data.value;
+        localStorage.setItem('ci_site_logo', logoUrl);
+      }
+    } catch(e) {}
+  }
+  
+  const navImg = document.getElementById('navLogoImg');
+  if (navImg) navImg.src = logoUrl;
+}
+
 // ── Init ─────────────────────────────────────────────────
+fetchAdminLogo();
 checkAdminAccess();
 </script>
 </body>
