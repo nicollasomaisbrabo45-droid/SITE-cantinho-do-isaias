@@ -1151,7 +1151,7 @@ function renderMenu(items){
             ${item.oldPrice?`<span class="card-price-old">R$ ${item.oldPrice.toFixed(2).replace('.',',')}</span>`:''}
           </div>
           <div id="addControl-${item.id}">
-            <button class="add-btn" onclick="addToCart(${item.id})">+</button>
+            <button class="add-btn" onclick="addToCart('${item.id}')">+</button>
           </div>
         </div>
       </div>
@@ -1162,31 +1162,32 @@ function renderMenu(items){
 
 function renderQtyControl(id,qty){
   const el=document.getElementById(`addControl-${id}`);if(!el)return;
-  if(qty<=0){el.innerHTML=`<button class="add-btn" onclick="addToCart(${id})">+</button>`;}
-  else{el.innerHTML=`<div class="qty-control"><button class="qty-btn" onclick="changeQty(${id},-1)">−</button><span class="qty-num">${qty}</span><button class="qty-btn" onclick="changeQty(${id},1)">+</button></div>`;}
+  if(qty<=0){el.innerHTML=`<button class="add-btn" onclick="addToCart('${id}')">+</button>`;}
+  else{el.innerHTML=`<div class="qty-control"><button class="qty-btn" onclick="changeQty('${id}',-1)">−</button><span class="qty-num">${qty}</span><button class="qty-btn" onclick="changeQty('${id}',1)">+</button></div>`;}
 }
 
 /* ─── CART LOGIC ─── */
 function addToCart(id){
-  const item=MENU.find(m=>m.id===id);
-  const ex=cart.find(c=>c.id===id);
+  const item=MENU.find(m=>String(m.id)===String(id));
+  if(!item) return;
+  const ex=cart.find(c=>String(c.id)===String(id));
   if(ex)ex.qty++;else cart.push({...item,qty:1});
-  renderQtyControl(id,cart.find(c=>c.id===id).qty);
+  renderQtyControl(id,cart.find(c=>String(c.id)===String(id)).qty);
   updateCartUI();showToast(`✅ ${item.name} adicionado!`);
   const btn=document.getElementById('cartBtn');
   btn.classList.add('pulse');setTimeout(()=>btn.classList.remove('pulse'),500);
 }
 
 function changeQty(id,delta){
-  const idx=cart.findIndex(c=>c.id===id);if(idx===-1)return;
+  const idx=cart.findIndex(c=>String(c.id)===String(id));if(idx===-1)return;
   cart[idx].qty+=delta;
   if(cart[idx].qty<=0)cart.splice(idx,1);
-  renderQtyControl(id,cart.find(c=>c.id===id)?.qty||0);
+  renderQtyControl(id,cart.find(c=>String(c.id)===String(id))?.qty||0);
   updateCartUI();renderCartItems();
 }
 
 function removeFromCart(id){
-  cart=cart.filter(c=>c.id!==id);
+  cart=cart.filter(c=>String(c.id)!==String(id));
   renderQtyControl(id,0);updateCartUI();
 }
 
@@ -1217,11 +1218,11 @@ function renderCartItems(){
         <div class="cart-item-price">R$ ${(item.price*item.qty).toFixed(2).replace('.',',')} (${item.qty}x)</div>
       </div>
       <div class="qty-control">
-        <button class="qty-btn" onclick="changeQty(${item.id},-1)" style="width:26px;height:26px;font-size:14px">−</button>
+        <button class="qty-btn" onclick="changeQty('${item.id}',-1)" style="width:26px;height:26px;font-size:14px">−</button>
         <span class="qty-num" style="font-size:0.88rem">${item.qty}</span>
-        <button class="qty-btn" onclick="changeQty(${item.id},1)" style="width:26px;height:26px;font-size:14px">+</button>
+        <button class="qty-btn" onclick="changeQty('${item.id}',1)" style="width:26px;height:26px;font-size:14px">+</button>
       </div>
-      <button class="cart-item-remove" onclick="removeFromCart(${item.id})">🗑️</button>
+      <button class="cart-item-remove" onclick="removeFromCart('${item.id}')">🗑️</button>
     </div>
   `).join('');
   updateCartUI();

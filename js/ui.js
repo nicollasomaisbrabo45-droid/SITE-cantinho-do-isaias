@@ -123,13 +123,13 @@ function renderQtyControl(id, qty) {
   const el = document.getElementById(`addControl-${id}`);
   if (!el) return;
   if (qty <= 0) {
-    el.innerHTML = `<button class="add-btn" onclick="addToCart(${id})" aria-label="Adicionar ao carrinho">+</button>`;
+    el.innerHTML = `<button class="add-btn" onclick="addToCart('${id}')" aria-label="Adicionar ao carrinho">+</button>`;
   } else {
     el.innerHTML = `
       <div class="qty-control" role="group" aria-label="Quantidade">
-        <button class="qty-btn" onclick="changeQty(${id},-1)" aria-label="Diminuir">−</button>
+        <button class="qty-btn" onclick="changeQty('${id}',-1)" aria-label="Diminuir">−</button>
         <span class="qty-num" aria-live="polite">${qty}</span>
-        <button class="qty-btn" onclick="changeQty(${id},1)" aria-label="Aumentar">+</button>
+        <button class="qty-btn" onclick="changeQty('${id}',1)" aria-label="Aumentar">+</button>
       </div>`;
   }
 }
