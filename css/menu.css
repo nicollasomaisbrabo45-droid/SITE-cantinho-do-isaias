@@ -11,44 +11,56 @@
 }
 .cats-scroll {
   display: flex;
-  gap: 10px;
+  flex-wrap: nowrap;
+  gap: 12px;
   overflow-x: auto;
-  padding-bottom: 6px;
+  padding: 8px 4px 14px;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 .cats-scroll::-webkit-scrollbar { display: none; }
 
 .cat-pill {
   flex-shrink: 0;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 10px 20px;
-  border-radius: var(--rpill);
-  border: 2px solid var(--border);
+  gap: 8px;
+  padding: 11px 22px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 45, 0, 0.13);
   background: var(--white);
   cursor: pointer;
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   color: var(--ash);
   text-transform: uppercase;
-  transition: all 0.2s;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
   white-space: nowrap;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8);
+  line-height: 1;
+  position: relative;
+  overflow: visible;
 }
 .cat-pill:hover {
   border-color: var(--ember);
   color: var(--ember);
-  transform: translateY(-1px);
+  background: rgba(255, 107, 26, 0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(255, 107, 26, 0.18), inset 0 1px 0 rgba(255,255,255,0.8);
 }
 .cat-pill.active {
-  background: linear-gradient(135deg, var(--fire), var(--ember));
-  border-color: var(--fire);
+  background: linear-gradient(135deg, var(--fire) 0%, var(--ember) 100%);
+  border-color: transparent;
   color: #fff;
-  box-shadow: 4px 4px 0 var(--gold), 0 6px 20px rgba(255, 45, 0, 0.25);
-  transform: translateY(-1px);
+  box-shadow: 0 4px 0 var(--gold), 0 8px 24px rgba(255, 45, 0, 0.30);
+  transform: translateY(-2px);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+}
+.cat-pill.active:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 0 var(--gold), 0 12px 30px rgba(255, 45, 0, 0.38);
 }
 
 /* ─── SEÇÃO DO MENU ─── */

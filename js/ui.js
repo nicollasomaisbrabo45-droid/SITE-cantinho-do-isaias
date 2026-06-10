@@ -64,7 +64,8 @@ function switchTab(tab, btn) {
     btn.setAttribute('aria-selected', 'true');
   }
 
-  document.getElementById('statusBar').style.display = tab === 'cardapio' ? '' : 'none';
+  // statusBar foi removido do HTML — linha mantida apenas como comentário
+  // document.getElementById('statusBar').style.display = ...
 
   if (tab === 'promos') renderPromos();
   if (tab === 'pedidos') renderOrders();
@@ -134,22 +135,50 @@ function renderQtyControl(id, qty) {
   }
 }
 
+/* Configuração de todas as categorias possíveis */
+const CATEGORY_CONFIG = [
+  { key: 'todos',      label: 'Todos',      emoji: '🍽️', titles: ['Cardápio',   'Completo']      },
+  { key: 'lanches',   label: 'Lanches',    emoji: '🍔', titles: ['Lanches',    'Artesanais']    },
+  { key: 'porcoes',   label: 'Porções',    emoji: '🍟', titles: ['Porções',    'Deliciosas']    },
+  { key: 'bebidas',   label: 'Bebidas',    emoji: '🥤', titles: ['Bebidas',    'Geladinhas']    },
+  { key: 'combos',    label: 'Combos',     emoji: '🎁', titles: ['Combos',     'Especiais']     },
+  { key: 'sobremesas',label: 'Sobremesas', emoji: '🍦', titles: ['Sobremesas', 'Irresistíveis'] },
+];
+
+/**
+ * Renderiza dinamicamente os pills de categoria.
+ * Só exibe categorias que possuam pelo menos 1 item ativo no globalMenu.
+ * A categoria "Todos" é sempre exibida se houver qualquer item.
+ */
+function renderCategoryPills() {
+  const row = document.getElementById('catsRow');
+  if (!row) return;
+
+  // Descobre quais categorias têm itens
+  const activeCats = new Set(globalMenu.map(m => m.cat));
+
+  const visibleCats = CATEGORY_CONFIG.filter(c =>
+    c.key === 'todos' ? globalMenu.length > 0 : activeCats.has(c.key)
+  );
+
+  row.innerHTML = visibleCats.map((c, i) => `
+    <button
+      class="cat-pill${i === 0 ? ' active' : ''}"
+      role="listitem"
+      id="cat-${c.key}"
+      onclick="filterCategory('${c.key}', this)"
+    >${c.emoji} ${c.label}</button>
+  `).join('');
+}
+
 function filterCategory(cat, btn) {
   document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   
   const filtered = cat === 'todos' ? globalMenu : globalMenu.filter(m => m.cat === cat);
   
-  const labels = {
-    todos: ['Cardápio', 'Completo'],
-    lanches: ['Lanches', 'Artesanais'],
-    porcoes: ['Porções', 'Deliciosas'],
-    bebidas: ['Bebidas', 'Geladinhas'],
-    combos: ['Combos', 'Especiais'],
-    sobremesas: ['Sobremesas', 'Irresistíveis'],
-  };
-  
-  const [l1, l2] = labels[cat] || ['Cardápio','Completo'];
+  const cfg = CATEGORY_CONFIG.find(c => c.key === cat);
+  const [l1, l2] = cfg ? cfg.titles : ['Cardápio','Completo'];
   document.getElementById('menuTitle').innerHTML = `${l1} <em>${l2}</em>`;
   renderMenu(filtered);
 }

@@ -64,9 +64,11 @@ window.addEventListener('load', async () => {
   // 3. Atualizar UI de usuário
   updateUserUI();
 
-  // 4. Buscar e renderizar Menu
+  // 4. Buscar e renderizar Menu + Pills de categoria dinâmicos
   const menuData = await fetchMenu();
+  renderCategoryPills(); // só mostra cats com itens ativos
   renderMenu(menuData);
+
 
   // 5. Buscar e renderizar Reviews
   const reviewsData = await fetchReviews();
