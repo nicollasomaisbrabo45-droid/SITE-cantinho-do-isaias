@@ -284,6 +284,10 @@
       <button class="modal-close" onclick="closeModal('authModal')" aria-label="Fechar">✕</button>
     </div>
     <div class="modal-body" id="authBody">
+      <div class="form-group" id="authNameGroup" style="display:none">
+        <label class="form-label" for="authName">Nome completo</label>
+        <input class="form-input" type="text" id="authName" placeholder="Seu nome" autocomplete="name"/>
+      </div>
       <div class="form-group">
         <label class="form-label" for="authEmail">E-mail</label>
         <input class="form-input" type="email" id="authEmail" placeholder="seu@email.com" autocomplete="email"/>

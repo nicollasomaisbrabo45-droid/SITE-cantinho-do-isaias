@@ -19,6 +19,8 @@ function openAuth() {
   document.getElementById('authTitle').textContent = 'Entrar na conta';
   document.getElementById('authSubmitBtn').textContent = 'Entrar';
   document.querySelector('.form-toggle').innerHTML = 'Não tem conta? <a onclick="toggleAuthMode()" role="button">Criar conta</a>';
+  const nameGroup = document.getElementById('authNameGroup');
+  if (nameGroup) nameGroup.style.display = 'none';
   openModal('authModal');
 }
 
@@ -32,6 +34,8 @@ function toggleAuthMode() {
   document.querySelector('.form-toggle').innerHTML = authMode === 'login'
     ? 'Não tem conta? <a onclick="toggleAuthMode()" role="button">Criar conta</a>'
     : 'Já tem conta? <a onclick="toggleAuthMode()" role="button">Entrar</a>';
+  const nameGroup = document.getElementById('authNameGroup');
+  if (nameGroup) nameGroup.style.display = authMode === 'login' ? 'none' : 'block';
 }
 
 /**
@@ -54,13 +58,22 @@ function generateUniqueId(email) {
 async function handleAuth() {
   const email = document.getElementById('authEmail').value.trim();
   const pass = document.getElementById('authPassword').value;
+  let name = '';
 
-  if (!email || !pass) {
-    showToast('⚠️ Preencha todos os campos');
-    return;
+  if (authMode === 'register') {
+    name = document.getElementById('authName').value.trim();
+    if (!name) {
+      showToast('⚠️ Preencha seu nome');
+      return;
+    }
+  } else {
+    name = email.split('@')[0];
   }
 
-  const name = email.split('@')[0];
+  if (!email || !pass) {
+    showToast('⚠️ Preencha email e senha');
+    return;
+  }
 
   if (!supabase) {
     // ─── MODO FALLBACK (Sem Supabase) ───
