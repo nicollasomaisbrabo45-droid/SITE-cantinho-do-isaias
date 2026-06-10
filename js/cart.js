@@ -56,18 +56,24 @@ function updateCartUI() {
   const subEl = document.getElementById('cartSubtotal');
   if (subEl) subEl.textContent = `R$ ${fmtPrice(subtotal)}`;
   
-  const grand = subtotal + deliveryFee;
   const totEl = document.getElementById('cartTotal');
-  if (totEl) totEl.textContent = `R$ ${fmtPrice(grand)}`;
+  if (totEl) totEl.textContent = `R$ ${fmtPrice(subtotal)}`;
   
   const btn = document.getElementById('checkoutBtn');
   if (btn) {
     btn.disabled = cart.length === 0;
     btn.textContent = cart.length === 0
       ? 'Adicione itens →'
-      : `Finalizar (R$ ${fmtPrice(grand)}) →`;
+      : `Ir para Pagamento (${count} ${count === 1 ? 'item' : 'itens'}) →`;
+  }
+
+  // Sincroniza resumo se o checkout estiver aberto
+  const tabPag = document.getElementById('tab-pagamento');
+  if (tabPag && tabPag.style.display !== 'none') {
+    if (typeof renderCheckoutPage === 'function') renderCheckoutPage();
   }
 }
+
 
 function renderCartItems() {
   const c = document.getElementById('cartItems');

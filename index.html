@@ -8,7 +8,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <link rel="stylesheet" href="css/variables.css"/>
+<link rel="stylesheet" href="css/checkout.css"/>
 <link rel="stylesheet" href="css/base.css"/>
 <link rel="stylesheet" href="css/navbar.css"/>
 <link rel="stylesheet" href="css/hero.css"/>
@@ -216,6 +219,129 @@
     </div>
   </div>
 
+  <!-- ════ PAGAMENTO TAB ════ -->
+  <div id="tab-pagamento" style="display:none;" role="tabpanel" aria-labelledby="tabBtn-pagamento">
+    <div>
+      <div class="section-label">Finalizar Compra</div>
+      <h2 class="section-title" style="margin-bottom:1.75rem;color:var(--charcoal)">PAGAMENTO E <em>ENTREGA</em></h2>
+    </div>
+
+    <div class="checkout-container">
+      <!-- Coluna da Esquerda: Localização e Cupom -->
+      <div class="checkout-left-col">
+        
+        <!-- Bloco 1: Localizações Salvas -->
+        <div class="checkout-section-card">
+          <div class="checkout-section-title">📍 Endereço de Entrega</div>
+          
+          <div class="saved-locations-header">
+            <span style="font-size:0.85rem;color:var(--ash);font-weight:600">Selecione uma localização salva:</span>
+          </div>
+          
+          <div class="saved-locations-grid" id="savedLocationsGrid">
+            <!-- Gerado dinamicamente no JS -->
+          </div>
+
+          <!-- Bloco GPS -->
+          <div class="gps-btn-container">
+            <button class="btn-gps" id="btnGPS" onclick="useGPSCheckout()">
+              📡 Usar Minha Localização Atual (GPS)
+            </button>
+          </div>
+
+          <!-- Formulário de Novo Endereço -->
+          <div style="border-top:1.5px solid var(--border);padding-top:1.25rem;margin-top:1.25rem;">
+            <span style="font-size:0.85rem;color:var(--ash);font-weight:600;display:block;margin-bottom:1rem">Ou adicione um novo endereço:</span>
+            
+            <div class="address-form-grid">
+              <div class="form-group form-full-row">
+                <label class="form-label" for="checkoutAddressName">Nome para este endereço (ex: Casa, Trabalho)</label>
+                <input class="form-input" type="text" id="checkoutAddressName" placeholder="Ex: Minha Casa"/>
+              </div>
+              <div class="form-group form-full-row">
+                <label class="form-label" for="checkoutStreet">Rua / Logradouro</label>
+                <input class="form-input" type="text" id="checkoutStreet" placeholder="Rua, Avenida, Estrada..."/>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="checkoutNumber">Número</label>
+                <input class="form-input" type="text" id="checkoutNumber" placeholder="Ex: 896"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="checkoutComplement">Complemento</label>
+                <input class="form-input" type="text" id="checkoutComplement" placeholder="Ex: Apto 101, Fundos"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="checkoutNeighborhood">Bairro</label>
+                <input class="form-input" type="text" id="checkoutNeighborhood" placeholder="Ex: Vista Alegre"/>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="checkoutCity">Cidade</label>
+                <input class="form-input" type="text" id="checkoutCity" value="São Gonçalo"/>
+              </div>
+            </div>
+            
+            <div id="checkoutLogisticsPreview"></div>
+
+            <div class="save-loc-btn-wrap">
+              <button class="btn-fire" style="padding:10px 20px; font-size: 0.88rem;" onclick="saveCurrentLocation()">
+                💾 Salvar e Usar este Endereço
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloco 2: Cupom de Desconto -->
+        <div class="checkout-section-card">
+          <div class="checkout-section-title">🏷️ Cupom de Desconto</div>
+          <div class="coupon-input-wrap">
+            <input class="form-input" type="text" id="couponCode" placeholder="Digite seu cupom" aria-label="Código do cupom"/>
+            <button class="btn-fire" style="padding: 12px 24px; font-size: 0.88rem;" onclick="applyCoupon()">Aplicar</button>
+          </div>
+          <div id="couponFeedback" class="coupon-feedback"></div>
+        </div>
+
+      </div>
+
+      <!-- Coluna da Direita: Resumo do Pedido -->
+      <div class="checkout-right-col">
+        <div class="checkout-section-card">
+          <div class="checkout-section-title">🛒 Resumo do Pedido</div>
+          
+          <div class="summary-items-list" id="checkoutItemsList">
+            <!-- Gerado dinamicamente -->
+          </div>
+
+          <div class="summary-price-box">
+            <div class="summary-price-row">
+              <span>Subtotal</span>
+              <span id="checkoutSubtotal">R$ 0,00</span>
+            </div>
+            <div class="summary-price-row">
+              <span>Taxa de Entrega</span>
+              <span id="checkoutDeliveryFee">R$ 0,00</span>
+            </div>
+            <div class="summary-price-row discount" id="checkoutDiscountRow" style="display:none">
+              <span id="checkoutDiscountLabel">Desconto (0%)</span>
+              <span id="checkoutDiscountValue">- R$ 0,00</span>
+            </div>
+            <div class="summary-price-row total">
+              <span>Total a Pagar</span>
+              <strong id="checkoutTotal">R$ 0,00</strong>
+            </div>
+          </div>
+
+          <button class="checkout-btn" style="margin-top:0;" id="checkoutConfirmBtn" onclick="submitCheckoutOrder()">
+            Confirmar e Enviar Pedido →
+          </button>
+          
+          <button class="btn-back-cardapio" onclick="switchTab('cardapio')">
+            ← Voltar para o Cardápio
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <!-- ════════════════════════════════════
@@ -269,14 +395,8 @@
   <div class="cart-items" id="cartItems"></div>
   <div class="cart-footer">
     <div class="cart-summary-row"><span>Subtotal</span><strong id="cartSubtotal">R$ 0,00</strong></div>
-    <div class="location-picker" id="locationPicker" onclick="openLocationModal()" role="button" tabindex="0" aria-label="Selecionar endereço de entrega">
-      <span>📍</span>
-      <span id="locationText">Adicionar endereço de entrega</span>
-      <span style="margin-left:auto;font-size:11px;opacity:0.6">▸</span>
-    </div>
-    <div class="cart-summary-row" id="deliveryRow" style="display:none"><span>Taxa de entrega</span><strong id="cartDelivery">R$ 0,00</strong></div>
-    <div class="cart-summary-row total"><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div>
-    <button class="checkout-btn" onclick="checkout()" id="checkoutBtn" disabled aria-label="Finalizar pedido">Finalizar Pedido →</button>
+    <div class="cart-summary-row total"><span>Itens</span><strong id="cartTotal">R$ 0,00</strong></div>
+    <button class="checkout-btn" onclick="goToCheckout()" id="checkoutBtn" disabled aria-label="Ir para pagamento">Ir para Pagamento →</button>
   </div>
 </aside>
 
@@ -309,47 +429,60 @@
   </div>
 </div>
 
+
+
 <!-- ════════════════════════════════════
-     LOCATION MODAL
+     MAP MODAL
 ════════════════════════════════════ -->
-<div class="modal-overlay" id="locationModal" role="dialog" aria-modal="true" aria-labelledby="locationTitle">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="locationTitle">📍 Endereço de Entrega</h3>
-      <button class="modal-close" onclick="closeModal('locationModal')" aria-label="Fechar">✕</button>
-    </div>
-    <div class="modal-body">
-      <p style="font-size:0.85rem;color:var(--ash);margin-bottom:0.25rem">Escolha como informar sua localização:</p>
-      <div class="location-options">
-        <div class="loc-option" onclick="useGPS()" id="gpsOption" role="button" tabindex="0">
-          <div class="loc-option-icon">📡</div>
-          <div class="loc-option-label">GPS Automático</div>
-          <div class="loc-option-desc">Detectar minha localização</div>
-        </div>
-        <div class="loc-option" id="manualOption" role="button" tabindex="0">
-          <div class="loc-option-icon">✍️</div>
-          <div class="loc-option-label">Digitar Endereço</div>
-          <div class="loc-option-desc">Inserir manualmente</div>
-        </div>
-      </div>
+<div class="modal-overlay" id="mapModal" role="dialog" aria-modal="true" aria-labelledby="mapModalTitle">
+  <div class="modal" style="max-width:680px;padding:0;overflow:hidden;">
+    <div id="mapModalHeader" style="
+      background: linear-gradient(135deg, var(--charcoal), var(--smoke));
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    ">
       <div>
-        <div class="form-group">
-          <label class="form-label" for="addressStreet">Endereço completo</label>
-          <input class="form-input" type="text" id="addressStreet" placeholder="Rua, número, bairro" autocomplete="street-address"/>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-          <div class="form-group">
-            <label class="form-label" for="addressCity">Cidade</label>
-            <input class="form-input" type="text" id="addressCity" placeholder="São Gonçalo" autocomplete="address-level2"/>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="addressDist">Distância (km)</label>
-            <input class="form-input" type="number" id="addressDist" placeholder="ex: 3" min="0" max="30" oninput="calcDelivery()"/>
-          </div>
-        </div>
-        <div id="deliveryFeePreview"></div>
-        <button class="form-submit" id="confirmLocationBtn" onclick="confirmLocation()">Confirmar Endereço ✓</button>
+        <div style="font-family:'Bebas Neue',cursive;font-size:1.4rem;letter-spacing:0.04em;color:#fff;" id="mapModalTitle">📍 Rota de Entrega</div>
+        <div id="mapModalInfo" style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:3px;"></div>
       </div>
+      <button class="modal-close" onclick="closeMapModal()" aria-label="Fechar" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.2);">✕</button>
+    </div>
+
+    <!-- Legenda -->
+    <div style="
+      display: flex;
+      gap: 20px;
+      padding: 10px 18px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--ash);
+      font-weight: 600;
+    ">
+      <span>🔴 Cantinho do Isaias</span>
+      <span>🔵 Ponto de entrega</span>
+      <span id="mapDistLabel" style="margin-left:auto;color:var(--fire);"></span>
+    </div>
+
+    <!-- Mapa -->
+    <div id="deliveryMap" style="height: 400px; width: 100%;"></div>
+
+    <!-- Rodapé -->
+    <div id="mapModalFooter" style="
+      padding: 12px 18px;
+      background: var(--white);
+      border-top: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    ">
+      <div id="mapFeeInfo" style="font-size:0.85rem;color:var(--ash);"></div>
+      <button class="btn-fire" style="padding:9px 20px;font-size:0.85rem;" onclick="closeMapModal()">Fechar Mapa</button>
     </div>
   </div>
 </div>
@@ -393,5 +526,6 @@
 <script src="js/checkout.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
+<script src="js/map.js"></script>
 </body>
 </html>

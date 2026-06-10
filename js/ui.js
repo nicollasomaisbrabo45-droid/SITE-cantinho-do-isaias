@@ -46,7 +46,7 @@ function toggleMobileNav() {
 }
 
 function switchTab(tab, btn) {
-  ['cardapio','promos','pedidos','sobre'].forEach(t => {
+  ['cardapio','promos','pedidos','sobre','pagamento'].forEach(t => {
     const el = document.getElementById(`tab-${t}`);
     if (el) el.style.display = 'none';
   });
@@ -72,7 +72,18 @@ function switchTab(tab, btn) {
   if (tab === 'sobre') {
     document.getElementById('reviewsGrid2').innerHTML = document.getElementById('reviewsGrid').innerHTML;
   }
+  if (tab === 'pagamento') {
+    if (typeof renderCheckoutPage === 'function') renderCheckoutPage();
+  }
 
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/** Fecha o carrinho e abre a aba de pagamento */
+function goToCheckout() {
+  if (cart.length === 0) { showToast('⚠️ Adicione itens ao carrinho primeiro!'); return; }
+  closeCart();
+  switchTab('pagamento');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
