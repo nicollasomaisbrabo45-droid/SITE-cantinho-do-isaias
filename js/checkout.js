@@ -298,16 +298,36 @@ async function saveCurrentLocation() {
   const locName = name || `Endereço ${locs.length + 1}`;
 
   // Captura coordenadas GPS da sessão (se vieram do botão GPS)
-  const gpsLat = window._lastGPSLat || null;
-  const gpsLng = window._lastGPSLng || null;
+  let saveLat = window._lastGPSLat || null;
+  let saveLng = window._lastGPSLng || null;
+
+  // Se não tem GPS, verifica o endereço manualmente antes de permitir salvar
+  if (!saveLat || !saveLng) {
+    const query = encodeURIComponent(`${street} ${number}, ${neighborhood}, ${city}, RJ, Brasil`);
+    try {
+      const resp = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&accept-language=pt-BR`);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data && data.length > 0) {
+          saveLat = parseFloat(data[0].lat);
+          saveLng = parseFloat(data[0].lon);
+        }
+      }
+    } catch (_) {}
+
+    if (!saveLat || !saveLng) {
+      showToast('❌ Endereço não reconhecido. Verifique os dados para poder salvar.');
+      return;
+    }
+  }
 
   if (supabase && currentUser) {
     try {
       const { data, error } = await supabase.from('user_locations').insert([{
         user_id: currentUser.id,
         name: locName, icon, street, number, complement, neighborhood, city,
-        lat: gpsLat,
-        lng: gpsLng,
+        lat: saveLat,
+        lng: saveLng,
       }]).select().single();
       if (error) throw error;
       checkoutSelectedLocation = { ...data, _id: data.id, _idx: locs.length };
@@ -319,7 +339,7 @@ async function saveCurrentLocation() {
     }
   } else {
     // fallback local
-    const newLoc = { name: locName, icon, street, number, complement, neighborhood, city, lat: gpsLat, lng: gpsLng };
+    const newLoc = { name: locName, icon, street, number, complement, neighborhood, city, lat: saveLat, lng: saveLng };
     locs.push(newLoc);
     _setLocalLocations(locs);
     checkoutSelectedLocation = { ...newLoc, _idx: locs.length - 1 };
