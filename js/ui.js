@@ -110,10 +110,6 @@ function renderMenu(items) {
         ${imgHtml}
       </div>
       <div class="card-body">
-        <div class="card-rating">
-          <span class="star">⭐</span>${item.rating}
-          <span style="color:var(--ash-light)">(${item.reviews})</span>
-        </div>
         <div class="card-title">${item.name}</div>
         <div class="card-desc">${item.desc}</div>
         <div class="card-footer">
@@ -213,7 +209,6 @@ function renderPromos() {
         ${imgHtml}
       </div>
       <div class="card-body">
-        <div class="card-rating"><span class="star">⭐</span>${item.rating} <span style="color:var(--ash-light)">(${item.reviews})</span></div>
         <div class="card-title">${item.name}</div>
         <div class="card-desc">${item.desc}</div>
         <div class="card-footer">
