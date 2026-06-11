@@ -81,6 +81,10 @@ function switchTab(tab, btn) {
 
 /** Fecha o carrinho e abre a aba de pagamento */
 function goToCheckout() {
+  if (typeof isStoreOpen !== 'undefined' && !isStoreOpen) {
+    showToast('🔴 A loja está fechada no momento. Não é possível finalizar pedidos.');
+    return;
+  }
   if (cart.length === 0) { showToast('⚠️ Adicione itens ao carrinho primeiro!'); return; }
   closeCart();
   switchTab('pagamento');

@@ -64,7 +64,7 @@ function updateCartUI() {
     btn.disabled = cart.length === 0;
     btn.textContent = cart.length === 0
       ? 'Adicione itens →'
-      : `Ir para Pagamento (${count} ${count === 1 ? 'item' : 'itens'}) →`;
+      : `Finalizar pedido (${count} ${count === 1 ? 'item' : 'itens'}) →`;
   }
 
   // Sincroniza resumo se o checkout estiver aberto

@@ -469,10 +469,6 @@ async function renderCheckoutPage() {
 async function submitCheckoutOrder() {
   if (cart.length === 0) { showToast('⚠️ Adicione itens ao carrinho antes de finalizar.'); return; }
 
-  if (typeof isStoreOpen !== 'undefined' && !isStoreOpen) {
-    showToast('🔴 A loja está fechada no momento.');
-    return;
-  }
 
   const street = (document.getElementById('checkoutStreet')?.value || '').trim();
   if (!street) {
