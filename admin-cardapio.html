@@ -480,9 +480,15 @@ body { background: #0d0d0f; min-height: 100vh; color: #fff; }
         <label>Nome da Categoria *</label>
         <input type="text" id="catNome" placeholder="Ex: Lanches, Bebidas, Combos…" oninput="updateCatSlug()"/>
       </div>
-      <div class="field">
+      <div class="field" style="position: relative;">
         <label>Ícone (emoji) *</label>
-        <input type="text" id="catIcone" placeholder="🍔" maxlength="4"/>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="text" id="catIcone" placeholder="🍔" maxlength="4" style="flex: 1; cursor: pointer;" readonly onclick="toggleEmojiPicker()"/>
+          <button type="button" class="btn-outline" id="btnEmojiPicker" onclick="toggleEmojiPicker()" style="padding: 0; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer;">😀</button>
+        </div>
+        <div id="emojiPickerContainer" style="display: none; position: absolute; top: 100%; left: 0; z-index: 9999; margin-top: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-radius: 8px; overflow: hidden; background: #18181c;">
+          <emoji-picker class="dark"></emoji-picker>
+        </div>
       </div>
       <div class="field">
         <label>Identificador interno</label>
@@ -500,6 +506,7 @@ body { background: #0d0d0f; min-height: 100vh; color: #fff; }
 <div class="toast-container" id="toastContainer"></div>
 
 <!-- SCRIPTS -->
+<script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase.js"></script>
 <script>
@@ -990,12 +997,39 @@ function openCategoriaModal() {
   document.getElementById('catNome').value  = '';
   document.getElementById('catIcone').value = '';
   document.getElementById('catSlug').value  = '';
+  document.getElementById('emojiPickerContainer').style.display = 'none';
   document.getElementById('categoriaModal').classList.add('open');
 }
 
 function closeCategoriaModal() {
   document.getElementById('categoriaModal').classList.remove('open');
+  document.getElementById('emojiPickerContainer').style.display = 'none';
 }
+
+function toggleEmojiPicker() {
+  const container = document.getElementById('emojiPickerContainer');
+  container.style.display = container.style.display === 'none' ? 'block' : 'none';
+}
+
+// Configurar Emoji Picker
+const picker = document.querySelector('emoji-picker');
+if (picker) {
+  picker.addEventListener('emoji-click', event => {
+    document.getElementById('catIcone').value = event.detail.unicode;
+    toggleEmojiPicker();
+  });
+}
+
+document.addEventListener('click', (e) => {
+  const container = document.getElementById('emojiPickerContainer');
+  const btn = document.getElementById('btnEmojiPicker');
+  const input = document.getElementById('catIcone');
+  if (container && container.style.display === 'block') {
+    if (!container.contains(e.target) && e.target !== btn && e.target !== input) {
+      container.style.display = 'none';
+    }
+  }
+});
 
 function updateCatSlug() {
   const nome = document.getElementById('catNome').value;
