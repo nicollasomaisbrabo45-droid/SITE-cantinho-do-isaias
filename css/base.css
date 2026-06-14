@@ -12,14 +12,28 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px;
+  /* 1. Eliminação do Scroll Horizontal: Trava o vazamento de layout no HTML */
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 body {
   font-family: 'Barlow', sans-serif;
   background: var(--cream);
   color: var(--charcoal);
-  min-height: 100vh;
+  /* 3. Correção de Bugs Visuais: 100dvh (dynamic viewport height) previne o bug da barra do Safari/Chrome mobile cortando a tela */
+  min-height: 100dvh; 
+  /* 1. Eliminação do Scroll Horizontal: Trava o vazamento no Body */
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
   -webkit-font-smoothing: antialiased;
+}
+
+/* 3. Correção de Bugs Visuais: Imagens e mídias nunca estouram o container parent */
+img, picture, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
 }
 
 /* ─── SCROLLBAR ─── */

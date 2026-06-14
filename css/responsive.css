@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════
    RESPONSIVE — responsive.css
    Media queries para mobile e tablet.
-   Sempre edite aqui para ajustar layouts.
+   Otimizado para Mobile-First e UI/UX densa.
 ═══════════════════════════════════════ */
 
 /* ─── TABLET / MOBILE (≤ 900px) ─── */
@@ -10,51 +10,85 @@
   .nav-tabs   { display: none; }
   .hamburger  { display: flex; }
 
-  /* Hero */
+  /* Hero Section */
   .hero {
     flex-direction: column;
     text-align: center;
+    /* Reduzindo paddings para melhor aproveitamento da tela */
     padding: 3rem 1.5rem 2.5rem;
-    min-height: auto;
+    /* Garantindo no mínimo o tamanho da tela, usando dvh */
+    min-height: auto; 
   }
-  .hero-content { max-width: 100%; }
-  .hero h1      { font-size: clamp(2.8rem, 11vw, 4.5rem); }
-  .hero-btns    { justify-content: center; }
+  .hero-content { max-width: 100%; width: 100%; }
+  /* Ajuste responsivo na fonte para evitar estouro */
+  .hero h1      { font-size: clamp(2.8rem, 11vw, 4.5rem); line-height: 1.1; }
+  .hero-btns    { justify-content: center; width: 100%; }
+  /* Botões mais fáceis de tocar (UX Mobile) */
+  .btn-fire, .btn-ghost { padding: 16px 24px; flex: 1; justify-content: center; text-align: center; }
   .hero-stats   { justify-content: center; flex-wrap: wrap; gap: 1.5rem; }
   .hero-bg-text { font-size: clamp(90px, 22vw, 160px); }
   .hero-tag, .hero-tag2, .hero-ring, .hero-ring2 { display: none; }
 
-  /* Menu */
+  /* 2. Distribuição de Conteúdo: Grid Ajustado */
   .menu-grid {
+    /* Mantém 2 colunas até apertar muito */
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 14px;
+    width: 100%;
   }
   .card-img    { height: 125px; font-size: 54px; }
 
-  /* Seções */
+  /* Seções: Preenchimento Visual (Fullness) */
   .cats-section,
-  .menu-section         { padding-left: 1.5rem; padding-right: 1.5rem; }
-  .reviews-section      { padding: 2.5rem 1.5rem; }
+  .menu-section,
+  .reviews-section      { padding: 2rem 1rem; width: 100%; }
+  
   #tab-promos,
   #tab-pedidos,
-  #tab-sobre            { padding: 1.75rem 1.5rem !important; }
+  #tab-sobre            { padding: 1.5rem 1rem !important; }
 
   /* Status bar */
-  .status-bar { padding: 0.65rem 1.25rem; gap: 0.75rem 1.5rem; }
+  .status-bar { padding: 0.65rem 1rem; gap: 0.75rem 1rem; }
 
   /* Footer */
-  .footer-grid   { grid-template-columns: 1fr; gap: 2rem; }
-  .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+  .footer-grid   { grid-template-columns: 1fr; gap: 2rem; width: 100%; }
+  .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
 }
 
-/* ─── MOBILE PEQUENO (≤ 480px) ─── */
+/* ─── MOBILE PEQUENO (SMARTPHONES ≤ 480px) ─── */
 @media (max-width: 480px) {
-  .hero       { padding: 2.5rem 1.25rem 2rem; }
-  .hero h1    { font-size: clamp(2.5rem, 13vw, 3.5rem); }
+  /* Otimizando os espaçamentos (paddings) para colar o layout, dando mais espaço útil */
+  .hero       { padding: 2rem 1rem 1.5rem; }
+  .hero h1    { font-size: clamp(2.2rem, 12vw, 3rem); }
+  .hero-btns  { flex-direction: column; gap: 10px; width: 100%; }
+  .hero-btns .btn-fire, .hero-btns .btn-ghost { width: 100%; padding: 18px 20px; font-size: 1.05rem; }
+
   .promo-banner {
     flex-direction: column;
     text-align: center;
+    gap: 1rem;
+    padding: 1.25rem 1rem;
   }
-  .nav-logo-text { font-size: 1.3rem; }
-  footer { padding: 2.5rem 1.25rem 1.5rem; }
+  
+  /* 2. Distribuição de Conteúdo: Transformando Menu Grid em Lista Vertical em telas super pequenas */
+  .menu-grid {
+    grid-template-columns: 1fr; /* 1 coluna total para dar foco e densidade nos itens */
+    gap: 16px;
+  }
+  /* Card reajustado para modo 1 coluna (imagem um pouco maior, melhor toque) */
+  .card-img { height: 160px; font-size: 64px; }
+  
+  /* Aumentando tamanho de fontes para legibilidade mobile */
+  .card-title { font-size: 1.15rem; }
+  .card-desc { font-size: 0.88rem; line-height: 1.4; }
+  .add-btn { width: 44px; height: 44px; font-size: 1.2rem; } /* Maior área de clique (UX) */
+
+  .nav-logo-text { font-size: 1.25rem; }
+  footer { padding: 2rem 1rem 1.5rem; }
+  
+  .section-title { font-size: 1.7rem; }
+  
+  /* Ajuste no carrinho lateral para tomar a tela toda se necessário */
+  .cart-sidebar { width: 100%; max-width: 100%; border-radius: 0; right: -100%; }
+  .cart-sidebar.open { right: 0; }
 }
