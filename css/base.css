@@ -159,3 +159,10 @@ body::before {
   0%, 100% { transform: scale(1); }
   50%       { transform: scale(1.25); }
 }
+
+@media (max-width: 768px) {
+  .admin-mobile-preview-btn {
+    display: none !important;
+  }
+}
+

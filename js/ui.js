@@ -395,3 +395,70 @@ function initParticles() {
     container.appendChild(p);
   }
 }
+
+function toggleMobileSimulator() {
+  if (window.self !== window.top) {
+    showToast('⚠️ Você já está no simulador!');
+    return;
+  }
+  
+  let overlay = document.getElementById('mobileSimulatorOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'mobileSimulatorOverlay';
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:99999; display:none; justify-content:center; align-items:center; backdrop-filter:blur(5px); flex-direction:column; gap:1.5rem;';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '✕ Fechar Visualização Mobile';
+    closeBtn.style.cssText = 'background:#ef4444; color:#fff; border:none; padding:12px 24px; border-radius:99px; font-family:"Barlow Condensed",sans-serif; font-weight:700; font-size:1.1rem; cursor:pointer; box-shadow:0 4px 15px rgba(239,68,68,0.4); transition:transform 0.2s;';
+    closeBtn.onmouseover = () => closeBtn.style.transform = 'scale(1.05)';
+    closeBtn.onmouseout = () => closeBtn.style.transform = 'scale(1)';
+    closeBtn.onclick = () => {
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
+      document.getElementById('mobileSimulatorFrame').src = ''; // Clear to save memory
+    };
+
+    const phone = document.createElement('div');
+    // Common iPhone dimensions (approximate)
+    phone.style.cssText = 'width: 390px; height: 844px; max-height:85vh; border: 14px solid #1a1a1a; border-radius: 40px; overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.8); background: #000; position: relative; flex-shrink:0;';
+    
+    const notch = document.createElement('div');
+    notch.style.cssText = 'position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 140px; height: 28px; background: #1a1a1a; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; z-index: 10;';
+
+    const iframe = document.createElement('iframe');
+    iframe.id = 'mobileSimulatorFrame';
+    iframe.style.cssText = 'width: 100%; height: 100%; border: none; background: #0d0d0f; border-radius: 26px;';
+    
+    phone.appendChild(notch);
+    phone.appendChild(iframe);
+    overlay.appendChild(closeBtn);
+    overlay.appendChild(phone);
+    document.body.appendChild(overlay);
+  }
+  
+  if (overlay.style.display === 'none' || overlay.style.display === '') {
+    let currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('in_simulator', '1');
+    document.getElementById('mobileSimulatorFrame').src = currentUrl.toString();
+    overlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  } else {
+    overlay.style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('mobileSimulatorFrame').src = '';
+  }
+}
+
+// Hide mobile preview button if we are already inside the simulator
+window.addEventListener('load', () => {
+  if (new URL(window.location.href).searchParams.get('in_simulator') === '1') {
+    const btn = document.getElementById('adminMobilePreviewBtn');
+    if(btn) btn.style.display = 'none !important';
+    
+    // Create a generic style element to hide the button forcefully inside the iframe
+    const style = document.createElement('style');
+    style.innerHTML = '.admin-mobile-preview-btn { display: none !important; }';
+    document.head.appendChild(style);
+  }
+});

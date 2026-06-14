@@ -204,5 +204,10 @@ function updateUserUI() {
     gearBtn.style.display = (currentUser && currentUser.role === 'admin') ? 'flex' : 'none';
   }
 
+  const mobilePreviewBtn = document.getElementById('adminMobilePreviewBtn');
+  if (mobilePreviewBtn) {
+    mobilePreviewBtn.style.display = (currentUser && currentUser.role === 'admin') ? 'flex' : 'none';
+  }
+
   if (avatarEl) avatarEl.textContent = currentUser ? currentUser.name[0].toUpperCase() : '👤';
 }
