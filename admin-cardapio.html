@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="css/variables.css"/>
 <link rel="stylesheet" href="css/base.css"/>
 <link rel="stylesheet" href="css/navbar.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"/>
 <style>
 /* ══════════════════════════════════════
    BASE
@@ -467,6 +468,27 @@ body { background: #0d0d0f; min-height: 100vh; color: #fff; }
 </div>
 
 <!-- ══════════════════════════════════════
+     MODAL: CROP FOTO
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="cropModal" style="z-index: 1001;">
+  <div class="modal-box" style="max-width: 600px;">
+    <div class="modal-head">
+      <h3>✂️ Ajustar Foto</h3>
+      <button class="modal-close-btn" onclick="closeCropModal()">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex; justify-content:center; align-items:center; background:#111115; min-height: 300px; padding: 1rem;">
+      <div style="width: 100%; max-height: 400px;">
+        <img id="cropImage" src="" style="max-width: 100%; display: block;" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeCropModal()">Cancelar</button>
+      <button class="btn-confirm" onclick="applyCrop()">Aplicar Corte</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
      MODAL: ADICIONAR CATEGORIA
 ══════════════════════════════════════ -->
 <div class="modal-overlay" id="categoriaModal">
@@ -508,6 +530,7 @@ body { background: #0d0d0f; min-height: 100vh; color: #fff; }
 <!-- SCRIPTS -->
 <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 <script src="js/supabase.js"></script>
 <script>
 // ══════════════════════════════════════
@@ -519,6 +542,8 @@ let draftItems    = [];   // itens adicionados/editados mas ainda não salvos
 let pendingDeletes = [];  // IDs de itens marcados para exclusão
 let editingId     = null; // id do item que está sendo editado
 let currentFilter = 'todos';
+let currentCropper = null;
+let croppedFileBlob = null; // Guardará o Blob da imagem cortada
 
 // ══════════════════════════════════════
 //  UTILITÁRIOS
@@ -746,6 +771,7 @@ function updateDraftBanner() {
 //  MODAL DE ITEM
 // ══════════════════════════════════════
 function openItemModal(itemData = null) {
+  croppedFileBlob = null;
   editingId = itemData?.id || null;
   document.getElementById('itemModalTitle').textContent = editingId ? '✏️ Editar Item' : '➕ Adicionar Item';
   document.getElementById('itemModalSubmit').textContent = editingId ? 'Salvar Alterações' : 'Adicionar ao Cardápio';
@@ -787,14 +813,55 @@ function previewImage(input) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
+    openCropModal(e.target.result);
+    input.value = ''; // Permite selecionar o mesmo arquivo novamente caso cancele
+  };
+  reader.readAsDataURL(file);
+}
+
+function openCropModal(imageSrc) {
+  document.getElementById('cropImage').src = imageSrc;
+  document.getElementById('cropModal').classList.add('open');
+  
+  if (currentCropper) {
+    currentCropper.destroy();
+  }
+  
+  const image = document.getElementById('cropImage');
+  currentCropper = new Cropper(image, {
+    aspectRatio: NaN, // Livre
+    viewMode: 1,
+    autoCropArea: 1,
+  });
+}
+
+function closeCropModal() {
+  document.getElementById('cropModal').classList.remove('open');
+  if (currentCropper) {
+    currentCropper.destroy();
+    currentCropper = null;
+  }
+}
+
+function applyCrop() {
+  if (!currentCropper) return;
+  
+  currentCropper.getCroppedCanvas({
+    maxWidth: 800,
+    maxHeight: 800,
+  }).toBlob((blob) => {
+    croppedFileBlob = blob;
+    const croppedUrl = URL.createObjectURL(blob);
+    
     const preview = document.getElementById('imgPreview');
-    preview.src = e.target.result;
+    preview.src = croppedUrl;
     preview.style.display = 'block';
     document.getElementById('uploadIcon').style.display = 'none';
     document.getElementById('uploadText').style.display = 'none';
     document.getElementById('itemFotoUrl').value = '';
-  };
-  reader.readAsDataURL(file);
+    
+    closeCropModal();
+  }, 'image/webp', 0.85);
 }
 
 function previewUrl(input) {
@@ -806,6 +873,7 @@ function previewUrl(input) {
     document.getElementById('uploadIcon').style.display = 'none';
     document.getElementById('uploadText').style.display = 'none';
     document.getElementById('itemFoto').value = '';
+    croppedFileBlob = null;
   }
 }
 
@@ -828,32 +896,31 @@ async function salvarItem() {
 
   // Upload de imagem se arquivo selecionado
   let imageUrl = urlImg;
-  if (fileInput.files[0] && window.supabase) {
-    const file = fileInput.files[0];
-    const ext  = file.name.split('.').pop().toLowerCase();
+  if (croppedFileBlob && window.supabase) {
+    const file = croppedFileBlob;
+    const ext  = 'webp';
     const path = `menu/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
     try {
       const { error: uploadError } = await window.supabase.storage
-        .from('images').upload(path, file, { upsert: true });
+        .from('images').upload(path, file, { upsert: true, contentType: 'image/webp' });
       if (!uploadError) {
         const { data: urlData } = window.supabase.storage.from('images').getPublicUrl(path);
         imageUrl = urlData.publicUrl;
       } else {
-        // Bucket não existe: usa data URL temporariamente
-        console.warn('Storage não disponível, usando URL externa ou data URL.');
-        imageUrl = document.getElementById('imgPreview').src || null;
-        // Avisa sobre o problema
-        if (imageUrl && imageUrl.startsWith('data:')) {
-          showToast('⚠️ Bucket de imagens não configurado. Use uma URL externa para a foto.');
-        }
+        console.warn('Storage não disponível, tentando fallback data URL...');
+        const reader = new FileReader();
+        reader.readAsDataURL(croppedFileBlob);
+        await new Promise(r => reader.onload = r);
+        imageUrl = reader.result;
+        showToast('⚠️ Bucket de imagens falhou. Usando data URL.');
       }
     } catch(e) {
       imageUrl = urlImg || null;
     }
   } else if (!imageUrl) {
-    // Pega o src do preview (pode ser data: ou URL externa)
+    // Pega o src do preview (pode ser data:, blob: ou URL externa)
     const previewSrc = document.getElementById('imgPreview').src;
-    imageUrl = (previewSrc && previewSrc !== window.location.href) ? previewSrc : null;
+    imageUrl = (previewSrc && previewSrc !== window.location.href && !previewSrc.startsWith('blob:')) ? previewSrc : null;
     // Não salva data: URLs puras no banco (seriam muito grandes)
     if (imageUrl && imageUrl.startsWith('data:')) imageUrl = null;
   }
@@ -1108,15 +1175,29 @@ async function deletarCategoria(cat) {
 // ══════════════════════════════════════
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
-    closeItemModal();
-    closeCategoriaModal();
+    if (document.getElementById('cropModal').classList.contains('open')) {
+      closeCropModal();
+    } else {
+      closeItemModal();
+      closeCategoriaModal();
+    }
   }
 });
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', function(e) {
     if (e.target === this) {
-      closeItemModal();
-      closeCategoriaModal();
+      if (this.id === 'cropModal') {
+        closeCropModal();
+      } else if (this.id === 'itemModal') {
+        closeItemModal();
+      } else if (this.id === 'categoriaModal') {
+        closeCategoriaModal();
+      } else {
+        // fallback geral
+        closeItemModal();
+        closeCategoriaModal();
+        if (typeof closeCropModal === 'function') closeCropModal();
+      }
     }
   });
 });

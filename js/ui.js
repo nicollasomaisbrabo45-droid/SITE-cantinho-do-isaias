@@ -158,21 +158,43 @@ const CATEGORY_CONFIG = [
 
 /**
  * Renderiza dinamicamente os pills de categoria.
- * Só exibe categorias que possuam pelo menos 1 item ativo no globalMenu.
- * A categoria "Todos" é sempre exibida se houver qualquer item.
  */
 function renderCategoryPills() {
   const row = document.getElementById('catsRow');
   if (!row) return;
 
-  // Descobre quais categorias têm itens
-  const activeCats = new Set(globalMenu.map(m => m.cat));
+  let catList = [ { key: 'todos', label: 'Todos', emoji: '🍽️', titles: ['Cardápio', 'Completo'] } ];
+  
+  if (typeof globalCategories !== 'undefined' && globalCategories.length > 0) {
+    globalCategories.forEach(c => {
+      const slug = c.slug || c.id || c.nome.toLowerCase();
+      const existing = CATEGORY_CONFIG.find(cfg => cfg.key === slug);
+      catList.push({
+        key: slug,
+        label: c.nome,
+        emoji: c.icone || '🏷️',
+        titles: existing ? existing.titles : [c.nome, '']
+      });
+    });
+  } else {
+    // Fallback caso globalCategories não retorne (ex: Supabase off ou sem categorias)
+    const activeCats = new Set(globalMenu.map(m => m.cat));
+    const fallbackCats = CATEGORY_CONFIG.filter(c => c.key === 'todos' || activeCats.has(c.key));
+    
+    activeCats.forEach(catKey => {
+      if (!fallbackCats.find(c => c.key === catKey)) {
+        fallbackCats.push({
+          key: catKey,
+          label: catKey.charAt(0).toUpperCase() + catKey.slice(1),
+          emoji: '🏷️',
+          titles: [catKey.charAt(0).toUpperCase() + catKey.slice(1), '']
+        });
+      }
+    });
+    catList = fallbackCats;
+  }
 
-  const visibleCats = CATEGORY_CONFIG.filter(c =>
-    c.key === 'todos' ? globalMenu.length > 0 : activeCats.has(c.key)
-  );
-
-  row.innerHTML = visibleCats.map((c, i) => `
+  row.innerHTML = catList.map((c, i) => `
     <button
       class="cat-pill${i === 0 ? ' active' : ''}"
       role="listitem"
@@ -180,6 +202,8 @@ function renderCategoryPills() {
       onclick="filterCategory('${c.key}', this)"
     >${c.emoji} ${c.label}</button>
   `).join('');
+  
+  window.ACTIVE_CATEGORY_CONFIG = catList;
 }
 
 function filterCategory(cat, btn) {
@@ -188,8 +212,9 @@ function filterCategory(cat, btn) {
   
   const filtered = cat === 'todos' ? globalMenu : globalMenu.filter(m => m.cat === cat);
   
-  const cfg = CATEGORY_CONFIG.find(c => c.key === cat);
-  const [l1, l2] = cfg ? cfg.titles : ['Cardápio','Completo'];
+  const configList = window.ACTIVE_CATEGORY_CONFIG || CATEGORY_CONFIG;
+  const cfg = configList.find(c => c.key === cat);
+  const [l1, l2] = cfg && cfg.titles ? cfg.titles : ['Cardápio', ''];
   document.getElementById('menuTitle').innerHTML = `${l1} <em>${l2}</em>`;
   renderMenu(filtered);
 }
