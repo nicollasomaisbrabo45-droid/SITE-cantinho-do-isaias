@@ -280,3 +280,105 @@
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.4; }
 }
+
+/* ─── BOTTOM NAVIGATION (MOBILE) ─── */
+.bottom-nav {
+  display: none; /* Hidden on desktop */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(26, 15, 5, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 2px solid var(--fire);
+  padding: 0.5rem 1rem;
+  z-index: 1000;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.bottom-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 12px;
+  transition: all 0.2s;
+  width: 65px;
+}
+
+.bottom-nav-btn:hover {
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.bottom-nav-btn.active {
+  color: var(--gold);
+}
+
+.bottom-nav-btn.active .bn-icon {
+  transform: translateY(-4px) scale(1.15);
+  filter: drop-shadow(0 4px 6px rgba(255, 184, 0, 0.4));
+}
+
+.bn-icon {
+  font-size: 1.4rem;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bn-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ─── FAB CART (MOBILE) ─── */
+.fab-cart {
+  display: none; /* Hidden on desktop */
+  position: fixed;
+  bottom: 80px; /* Above the bottom nav */
+  right: 1.5rem;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--fire), var(--ember));
+  border: none;
+  color: #fff;
+  font-size: 1.8rem;
+  cursor: pointer;
+  z-index: 1001;
+  box-shadow: 0 8px 24px rgba(255, 45, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fab-cart:hover {
+  transform: scale(1.08) translateY(-4px);
+  box-shadow: 0 12px 32px rgba(255, 45, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.2);
+}
+
+.fab-cart .badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--charcoal);
+  color: var(--gold);
+  border: 2px solid var(--fire);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

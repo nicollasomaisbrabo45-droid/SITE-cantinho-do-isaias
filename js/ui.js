@@ -54,7 +54,7 @@ function switchTab(tab, btn) {
   const active = document.getElementById(`tab-${tab}`);
   if (active) active.style.display = 'block';
 
-  document.querySelectorAll('.nav-tab, .mobile-nav-tab').forEach(b => {
+  document.querySelectorAll('.nav-tab, .mobile-nav-tab, .bottom-nav-btn').forEach(b => {
     b.classList.remove('active');
     b.setAttribute('aria-selected', 'false');
   });

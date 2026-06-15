@@ -8,7 +8,13 @@
 @media (max-width: 900px) {
   /* Navbar */
   .nav-tabs   { display: none; }
-  .hamburger  { display: flex; }
+  .nav-actions { display: none; }
+  .hamburger  { display: none; }
+  .bottom-nav { display: flex; }
+  .fab-cart   { display: flex; }
+
+  /* Pad main content for bottom nav */
+  main#mainContent { padding-bottom: 80px; }
 
   /* Hero Section */
   .hero {
