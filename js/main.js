@@ -96,4 +96,17 @@ window.addEventListener('load', async () => {
   document.querySelectorAll('.star-pick').forEach(s => {
     s.style.filter = 'none';
   });
+
+  // 8. Smart Navbar (hide on scroll down)
+  let lastScrollY = window.scrollY;
+  const navbar = document.querySelector('.navbar');
+  window.addEventListener('scroll', () => {
+    if (!navbar) return;
+    if (window.scrollY > lastScrollY && window.scrollY > 100) {
+      navbar.classList.add('nav-hidden');
+    } else {
+      navbar.classList.remove('nav-hidden');
+    }
+    lastScrollY = window.scrollY;
+  }, { passive: true });
 });
