@@ -13,8 +13,8 @@
   .bottom-nav { display: flex; }
   .fab-cart   { display: flex; }
 
-  /* Pad main content for bottom nav */
-  main#mainContent { padding-bottom: 80px; }
+  /* Pad footer instead of main content to avoid white gaps */
+  footer { padding-bottom: calc(2rem + 80px); }
 
   /* Hero Section */
   .hero {
@@ -93,7 +93,7 @@
   .card-footer { margin-top: auto; }
 
   .nav-logo-text { font-size: 1.25rem; }
-  footer { padding: 2rem 1rem 1.5rem; }
+  footer { padding: 2rem 1rem calc(1.5rem + 80px); }
   
   .section-title { font-size: 1.7rem; }
   
