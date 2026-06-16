@@ -44,11 +44,13 @@ function haversineDistance(lat1, lng1, lat2, lng2) {
 
 // ─── CÁLCULO DE FRETE ────────────────────────────────────────
 function calcDeliveryFee(distKm) {
-  if (distKm < 1)  return 2.00;
-  if (distKm <= 2) return 5.00;
-  if (distKm <= 5) return 7.00;
-  if (distKm <= 8) return 10.00;
-  return 12.00 + (distKm - 8) * 1.50;
+  if (distKm <= 0.5) return 2.00;
+  if (distKm <= 1.0) return 4.00;
+  if (distKm <= 1.5) return 5.00;
+  if (distKm <= 2.0) return 6.00;
+  if (distKm <= 2.5) return 7.50;
+  if (distKm <= 3.0) return 9.00;
+  return -1; // -1 indicates out of range
 }
 
 // ─── CÁLCULO DO TEMPO DE BIKE ────────────────────────────────
@@ -61,16 +63,35 @@ function calcBikeTime(distKm) {
 // ─── RENDER DO PREVIEW DE LOGÍSTICA ─────────────────────────
 function renderLogisticsPreview(distKm, neighborhood) {
   const fee = calcDeliveryFee(distKm);
+  const box = document.getElementById('checkoutLogisticsPreview');
+  const btn = document.getElementById('checkoutConfirmBtn');
+
+  if (fee === -1) {
+    checkoutDeliveryFee = 0;
+    updateCheckoutTotals();
+    if (box) {
+      box.innerHTML = `
+        <div class="logistics-info-box" style="border-left-color: #e74c3c; background: rgba(231,76,60,0.08);">
+          ❌ <strong>Infelizmente este endereço está fora do nosso raio de entrega de 3km.</strong><br>
+          <span style="font-size: 0.8rem;">(Distância detectada: ${distKm.toFixed(1)} km)</span>
+        </div>
+      `;
+    }
+    if (btn) btn.disabled = true;
+    return;
+  }
+
   const bikeTime = calcBikeTime(distKm);
   checkoutDeliveryFee = fee;
   updateCheckoutTotals();
+  if (btn) btn.disabled = false;
 
   const bairro = neighborhood || 'destino';
-  const box = document.getElementById('checkoutLogisticsPreview');
   if (!box) return;
   box.innerHTML = `
     <div class="logistics-info-box">
-      📍 O valor estimado para a entrega no <strong>${bairro}</strong> é de <strong>R$ ${fmtPrice(fee)}</strong>.
+      📍 O valor estimado para a entrega no <strong>${bairro}</strong> é de <strong>R$ ${fmtPrice(fee)}</strong>.<br>
+      <span style="font-size: 0.8rem; color: var(--ash);">Distância real: ${distKm.toFixed(1)} km (Até ${bikeTime} min de 🚲)</span>
     </div>
   `;
 }
@@ -93,44 +114,16 @@ function useGPSCheckout() {
     async (pos) => {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
-      const dist = haversineDistance(STORE_LAT, STORE_LNG, lat, lng);
-
-      // Geocodificação reversa via OpenStreetMap Nominatim
-      let street = 'Localização detectada via GPS';
-      let neighborhood = '';
-      let city = 'São Gonçalo';
-
-      try {
-        const resp = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=pt-BR`,
-          { headers: { 'Accept-Language': 'pt-BR' } }
-        );
-        if (resp.ok) {
-          const data = await resp.json();
-          const a = data.address || {};
-          street = [a.road || a.highway || '', a.house_number || ''].filter(Boolean).join(', ') || street;
-          neighborhood = a.suburb || a.neighbourhood || a.quarter || a.city_district || '';
-          city = a.city || a.town || a.municipality || city;
-        }
-      } catch (_) { /* fallback silencioso */ }
-
-      // Guarda coordenadas na sessão para usar ao salvar o endereço
-      window._lastGPSLat = lat;
-      window._lastGPSLng = lng;
-
-      // Preenche o formulário
-      setValue('checkoutStreet', street);
-      setValue('checkoutNeighborhood', neighborhood);
-      setValue('checkoutCity', city);
-      setValue('checkoutNumber', '');
-      setValue('checkoutComplement', '');
-
-      renderLogisticsPreview(dist, neighborhood || city);
-      showToast('✅ Localização detectada com sucesso!');
 
       if (btn) {
         btn.classList.remove('loading');
         btn.textContent = '📡 Usar Minha Localização Atual (GPS)';
+      }
+      
+      if (typeof openLocationPicker === 'function') {
+        openLocationPicker(lat, lng);
+      } else {
+        showToast('❌ Erro: Módulo de mapa não carregado.');
       }
     },
     () => {

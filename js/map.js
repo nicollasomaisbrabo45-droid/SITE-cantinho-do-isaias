@@ -219,3 +219,179 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// ─── LOCATION PICKER (GEOLOCALIZAÇÃO) ─────────────────────────
+let _pickerMap = null;
+let _pickerMarker = null;
+
+function openLocationPicker(lat, lng) {
+  const modal = document.getElementById('locationPickerModal');
+  if (!modal) return;
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  const preview = document.getElementById('locationPickerAddressPreview');
+  if (preview) preview.textContent = 'Buscando endereço...';
+
+  // Oculta modais abertos no cantinho-isaias.html se necessário
+  const locModal = document.getElementById('locationModal');
+  if (locModal && locModal.classList.contains('open')) {
+    locModal.classList.remove('open');
+  }
+
+  setTimeout(() => {
+    if (!_pickerMap) {
+      _pickerMap = L.map('locationPickerMap', { zoomControl: true, attributionControl: false }).setView([lat, lng], 16);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd',
+        maxZoom: 19,
+      }).addTo(_pickerMap);
+
+      const destIcon = L.divIcon({
+        className: '',
+        html: `
+          <div style="
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, #FF2D00, #FF6B1A);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            box-shadow: 0 4px 14px rgba(255,45,0,0.45);
+            border: 3px solid #fff;
+            display: flex; align-items: center; justify-content: center;
+          ">
+            <span style="transform:rotate(45deg);font-size:17px;">📍</span>
+          </div>`,
+        iconSize: [38, 38],
+        iconAnchor: [19, 38],
+      });
+
+      _pickerMarker = L.marker([lat, lng], { icon: destIcon, draggable: true }).addTo(_pickerMap);
+
+      // Eventos
+      _pickerMap.on('click', (e) => {
+        _pickerMarker.setLatLng(e.latlng);
+        _reverseGeocodePicker(e.latlng.lat, e.latlng.lng);
+      });
+      _pickerMarker.on('dragend', (e) => {
+        const pos = _pickerMarker.getLatLng();
+        _reverseGeocodePicker(pos.lat, pos.lng);
+      });
+    } else {
+      _pickerMap.setView([lat, lng], 16);
+      _pickerMarker.setLatLng([lat, lng]);
+    }
+    _pickerMap.invalidateSize();
+    _reverseGeocodePicker(lat, lng);
+  }, 100);
+}
+
+function closeLocationPicker() {
+  const modal = document.getElementById('locationPickerModal');
+  if (modal) modal.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+let _currentPickerAddress = null;
+
+async function _reverseGeocodePicker(lat, lng) {
+  const preview = document.getElementById('locationPickerAddressPreview');
+  if (preview) preview.innerHTML = '<span style="color:var(--fire)">Buscando...</span>';
+  
+  _currentPickerAddress = { lat, lng, street: '', neighborhood: '', city: 'São Gonçalo' };
+
+  try {
+    const resp = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=pt-BR`
+    );
+    if (resp.ok) {
+      const data = await resp.json();
+      const a = data.address || {};
+      const street = [a.road || a.highway || '', a.house_number || ''].filter(Boolean).join(', ');
+      const neighborhood = a.suburb || a.neighbourhood || a.quarter || a.city_district || '';
+      const city = a.city || a.town || a.municipality || 'São Gonçalo';
+      
+      _currentPickerAddress.street = street;
+      _currentPickerAddress.neighborhood = neighborhood;
+      _currentPickerAddress.city = city;
+
+      if (preview) preview.innerHTML = `<strong>${street || 'Rua desconhecida'}</strong><br><span style="font-size:0.75rem">${neighborhood || city}</span>`;
+    }
+  } catch (e) {
+    if (preview) preview.innerHTML = '<span style="color:#e74c3c">Erro ao buscar endereço. Tente mover o pino.</span>';
+  }
+}
+
+function confirmLocationPicker() {
+  if (!_currentPickerAddress) return;
+
+  const { lat, lng, street, neighborhood, city } = _currentPickerAddress;
+
+  // Se tiver a constante global STORE_LAT/STORE_LNG
+  let dist = 0;
+  if (typeof STORE_LAT !== 'undefined' && typeof STORE_LNG !== 'undefined' && typeof haversineDistance === 'function') {
+    dist = haversineDistance(STORE_LAT, STORE_LNG, lat, lng);
+  } else if (typeof haversineDistance !== 'undefined') {
+    // Para o cantinho-isaias.html, precisa definir
+    dist = haversineDistance(-22.8141483, -42.9668196, lat, lng);
+  }
+
+  // Atualiza index.html se estiver na página
+  const streetInput = document.getElementById('checkoutStreet');
+  if (streetInput) {
+    streetInput.value = street;
+    streetInput.readOnly = true; // Bloqueia edição
+    streetInput.style.background = 'var(--cream)';
+  }
+  const neighInput = document.getElementById('checkoutNeighborhood');
+  if (neighInput) {
+    neighInput.value = neighborhood;
+    neighInput.readOnly = true;
+    neighInput.style.background = 'var(--cream)';
+  }
+  const cityInput = document.getElementById('checkoutCity');
+  if (cityInput) {
+    cityInput.value = city;
+    cityInput.readOnly = true;
+    cityInput.style.background = 'var(--cream)';
+  }
+
+  // Atualiza variáveis da sessão
+  window._lastGPSLat = lat;
+  window._lastGPSLng = lng;
+
+  if (typeof renderLogisticsPreview === 'function') {
+    renderLogisticsPreview(dist, neighborhood || city);
+  }
+
+  // Focar no número
+  const numInput = document.getElementById('checkoutNumber');
+  if (numInput) {
+    numInput.value = '';
+    numInput.focus();
+  }
+
+  // Lógica para cantinho-isaias.html (página mais simples)
+  const addrDist = document.getElementById('addressDist');
+  if (addrDist) {
+    addrDist.value = dist.toFixed(1);
+    const simpleStreet = document.getElementById('addressStreet');
+    if (simpleStreet) {
+      simpleStreet.value = street + (neighborhood ? ' - ' + neighborhood : '');
+      simpleStreet.readOnly = true;
+      simpleStreet.style.background = 'var(--cream)';
+    }
+    const simpleCity = document.getElementById('addressCity');
+    if (simpleCity) {
+      simpleCity.value = city;
+      simpleCity.readOnly = true;
+      simpleCity.style.background = 'var(--cream)';
+    }
+    if (typeof calcDelivery === 'function') {
+      calcDelivery();
+      document.getElementById('gpsOption')?.classList.add('selected');
+    }
+  }
+
+  closeLocationPicker();
+  if (typeof showToast === 'function') showToast('✅ Endereço capturado! Complete o número.');
+}

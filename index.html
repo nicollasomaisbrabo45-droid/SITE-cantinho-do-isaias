@@ -507,6 +507,30 @@
       <div id="mapFeeInfo" style="font-size:0.85rem;color:var(--ash);"></div>
       <button class="btn-fire" style="padding:9px 20px;font-size:0.85rem;" onclick="closeMapModal()">Fechar Mapa</button>
     </div>
+</div>
+</div>
+
+<!-- ════════════════════════════════════
+     LOCATION PICKER MODAL
+════════════════════════════════════ -->
+<div class="modal-overlay" id="locationPickerModal" role="dialog" aria-modal="true" aria-labelledby="locationPickerTitle">
+  <div class="modal" style="max-width:680px;padding:0;overflow:hidden;position:relative;">
+    <div style="background: linear-gradient(135deg, var(--charcoal), var(--smoke)); padding: 1.2rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+      <div>
+        <div style="font-family:'Bebas Neue',cursive;font-size:1.4rem;letter-spacing:0.04em;color:#fff;" id="locationPickerTitle">📍 Onde você está?</div>
+        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:3px;">Arraste o pino ou clique no mapa para o local exato</div>
+      </div>
+      <button class="modal-close" onclick="closeLocationPicker()" aria-label="Fechar" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.2);">✕</button>
+    </div>
+
+    <!-- Mapa -->
+    <div id="locationPickerMap" style="height: 400px; width: 100%;"></div>
+
+    <!-- Confirmação -->
+    <div style="padding: 12px 18px; background: var(--white); border-top: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+      <div id="locationPickerAddressPreview" style="font-size:0.85rem;color:var(--ash); flex: 1;">Buscando endereço...</div>
+      <button class="btn-fire" id="btnConfirmLocationPicker" style="padding:9px 20px;font-size:0.85rem;" onclick="confirmLocationPicker()">Confirmar Localização</button>
+    </div>
   </div>
 </div>
 
