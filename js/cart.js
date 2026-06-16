@@ -47,11 +47,13 @@ function updateCartUI() {
   const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
   const count = cart.reduce((s, c) => s + c.qty, 0);
   
-  const badge = document.getElementById('cartBadge');
-  if (badge) {
-    badge.style.display = count > 0 ? 'flex' : 'none';
-    badge.textContent = count > 99 ? '99+' : count;
-  }
+  ['cartBadge', 'fabCartBadge', 'bottomNavCartBadge'].forEach(id => {
+    const badge = document.getElementById(id);
+    if (badge) {
+      badge.style.display = count > 0 ? 'flex' : 'none';
+      badge.textContent = count > 99 ? '99+' : count;
+    }
+  });
   
   const subEl = document.getElementById('cartSubtotal');
   if (subEl) subEl.textContent = `R$ ${fmtPrice(subtotal)}`;
