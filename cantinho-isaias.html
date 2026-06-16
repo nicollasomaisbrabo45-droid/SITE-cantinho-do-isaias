@@ -955,7 +955,7 @@ footer{
     <div class="rating-form">
       <h3>Deixe sua avaliação ✍️</h3>
       <div class="form-group">
-        <label class="form-label">Sua nota</label>
+        <label class="form-label" for="reviewText">Sua nota</label>
         <div style="display:flex;gap:6px;margin-bottom:12px;font-size:26px;cursor:pointer">
           <span onclick="setRating(1)">⭐</span><span onclick="setRating(2)">⭐</span>
           <span onclick="setRating(3)">⭐</span><span onclick="setRating(4)">⭐</span>
@@ -1030,11 +1030,11 @@ footer{
     </div>
     <div class="modal-body" id="authBody">
       <div class="form-group">
-        <label class="form-label">E-mail</label>
+        <label class="form-label" for="authEmail">E-mail</label>
         <input class="form-input" type="email" id="authEmail" placeholder="seu@email.com"/>
       </div>
       <div class="form-group">
-        <label class="form-label">Senha</label>
+        <label class="form-label" for="authPassword">Senha</label>
         <input class="form-input" type="password" id="authPassword" placeholder="••••••••"/>
       </div>
       <button class="form-submit" onclick="handleAuth()">Entrar</button>
@@ -1067,16 +1067,15 @@ footer{
       </div>
       <div style="margin-top:1rem">
         <div class="form-group">
-          <label class="form-label">Endereço completo</label>
+          <label class="form-label" for="addressStreet">Endereço completo</label>
           <input class="form-input" type="text" id="addressStreet" placeholder="Rua, número, bairro"/>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div class="form-group">
-            <label class="form-label">Cidade</label>
-            <input class="form-input" type="text" id="addressCity" placeholder="São Gonçalo"/>
+        <div>
+          <div class="form-group" style="display:none">
+            <input class="form-input" type="hidden" id="addressCity" value="São Gonçalo"/>
           </div>
           <div class="form-group">
-            <label class="form-label">Distância (km)</label>
+            <label class="form-label" for="addressDist">Distância (km)</label>
             <input class="form-input" type="number" id="addressDist" placeholder="ex: 3" min="0" max="30" oninput="calcDelivery()"/>
           </div>
         </div>
@@ -1435,17 +1434,19 @@ function closeLocationPicker() {
 async function _reverseGeocodePicker(lat, lng) {
   const preview = document.getElementById('locationPickerAddressPreview');
   if (preview) preview.innerHTML = '<span style="color:var(--fire)">Buscando...</span>';
-  _currentPickerAddress = { lat, lng, street: '', neighborhood: '', city: 'São Gonçalo' };
+  _currentPickerAddress = { lat, lng, street: '', number: '', neighborhood: '', city: 'São Gonçalo' };
   try {
     const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=pt-BR`);
     if (resp.ok) {
       const data = await resp.json();
       const a = data.address || {};
-      const street = [a.road || a.highway || '', a.house_number || ''].filter(Boolean).join(', ');
+      const street = a.road || a.highway || '';
+      const number = a.house_number || '';
       const neighborhood = a.suburb || a.neighbourhood || a.quarter || a.city_district || '';
       const city = a.city || a.town || a.municipality || 'São Gonçalo';
-      _currentPickerAddress.street = street; _currentPickerAddress.neighborhood = neighborhood; _currentPickerAddress.city = city;
-      if (preview) preview.innerHTML = `<strong>${street || 'Rua desconhecida'}</strong><br><span style="font-size:0.75rem">${neighborhood || city}</span>`;
+      _currentPickerAddress.street = street; _currentPickerAddress.number = number; _currentPickerAddress.neighborhood = neighborhood; _currentPickerAddress.city = city;
+      const displayAddress = [street, number].filter(Boolean).join(', ');
+      if (preview) preview.innerHTML = `<strong>${displayAddress || 'Rua desconhecida'}</strong><br><span style="font-size:0.75rem">${neighborhood || city}</span>`;
     }
   } catch (e) {
     if (preview) preview.innerHTML = '<span style="color:#e74c3c">Erro ao buscar endereço. Tente mover o pino.</span>';
@@ -1454,13 +1455,13 @@ async function _reverseGeocodePicker(lat, lng) {
 
 function confirmLocationPicker() {
   if (!_currentPickerAddress) return;
-  const { lat, lng, street, neighborhood, city } = _currentPickerAddress;
+  const { lat, lng, street, number, neighborhood, city } = _currentPickerAddress;
   const dist = haversineDistance(-22.8141483, -42.9668196, lat, lng);
   
   const addrDist = document.getElementById('addressDist');
   if (addrDist) addrDist.value = dist.toFixed(1);
   const simpleStreet = document.getElementById('addressStreet');
-  if (simpleStreet) { simpleStreet.value = street + (neighborhood ? ' - ' + neighborhood : ''); simpleStreet.readOnly = true; simpleStreet.style.background = 'var(--cream)'; }
+  if (simpleStreet) { const fullStreet = [street, number].filter(Boolean).join(', '); simpleStreet.value = fullStreet + (neighborhood ? ' - ' + neighborhood : ''); simpleStreet.readOnly = true; simpleStreet.style.background = 'var(--cream)'; }
   const simpleCity = document.getElementById('addressCity');
   if (simpleCity) { simpleCity.value = city; simpleCity.readOnly = true; simpleCity.style.background = 'var(--cream)'; }
   

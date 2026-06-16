@@ -297,7 +297,7 @@ async function _reverseGeocodePicker(lat, lng) {
   const preview = document.getElementById('locationPickerAddressPreview');
   if (preview) preview.innerHTML = '<span style="color:var(--fire)">Buscando...</span>';
   
-  _currentPickerAddress = { lat, lng, street: '', neighborhood: '', city: 'São Gonçalo' };
+  _currentPickerAddress = { lat, lng, street: '', number: '', neighborhood: '', city: 'São Gonçalo' };
 
   try {
     const resp = await fetch(
@@ -306,15 +306,18 @@ async function _reverseGeocodePicker(lat, lng) {
     if (resp.ok) {
       const data = await resp.json();
       const a = data.address || {};
-      const street = [a.road || a.highway || '', a.house_number || ''].filter(Boolean).join(', ');
+      const street = a.road || a.highway || '';
+      const number = a.house_number || '';
       const neighborhood = a.suburb || a.neighbourhood || a.quarter || a.city_district || '';
       const city = a.city || a.town || a.municipality || 'São Gonçalo';
       
       _currentPickerAddress.street = street;
+      _currentPickerAddress.number = number;
       _currentPickerAddress.neighborhood = neighborhood;
       _currentPickerAddress.city = city;
 
-      if (preview) preview.innerHTML = `<strong>${street || 'Rua desconhecida'}</strong><br><span style="font-size:0.75rem">${neighborhood || city}</span>`;
+      const displayAddress = [street, number].filter(Boolean).join(', ');
+      if (preview) preview.innerHTML = `<strong>${displayAddress || 'Rua desconhecida'}</strong><br><span style="font-size:0.75rem">${neighborhood || city}</span>`;
     }
   } catch (e) {
     if (preview) preview.innerHTML = '<span style="color:#e74c3c">Erro ao buscar endereço. Tente mover o pino.</span>';
@@ -324,7 +327,7 @@ async function _reverseGeocodePicker(lat, lng) {
 function confirmLocationPicker() {
   if (!_currentPickerAddress) return;
 
-  const { lat, lng, street, neighborhood, city } = _currentPickerAddress;
+  const { lat, lng, street, number, neighborhood, city } = _currentPickerAddress;
 
   // Se tiver a constante global STORE_LAT/STORE_LNG
   let dist = 0;
@@ -363,11 +366,13 @@ function confirmLocationPicker() {
     renderLogisticsPreview(dist, neighborhood || city);
   }
 
-  // Focar no número
+  // Focar no número e preencher se existir
   const numInput = document.getElementById('checkoutNumber');
   if (numInput) {
-    numInput.value = '';
-    numInput.focus();
+    numInput.value = number || '';
+    if (!number) {
+      numInput.focus();
+    }
   }
 
   // Lógica para cantinho-isaias.html (página mais simples)
@@ -376,7 +381,8 @@ function confirmLocationPicker() {
     addrDist.value = dist.toFixed(1);
     const simpleStreet = document.getElementById('addressStreet');
     if (simpleStreet) {
-      simpleStreet.value = street + (neighborhood ? ' - ' + neighborhood : '');
+      const fullStreet = [street, number].filter(Boolean).join(', ');
+      simpleStreet.value = fullStreet + (neighborhood ? ' - ' + neighborhood : '');
       simpleStreet.readOnly = true;
       simpleStreet.style.background = 'var(--cream)';
     }

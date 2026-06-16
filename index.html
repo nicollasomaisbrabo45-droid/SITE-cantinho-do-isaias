@@ -228,7 +228,7 @@
     <div class="rating-form">
       <h3>Deixe sua avaliação ✍️</h3>
       <div class="form-group">
-        <label class="form-label">Sua nota</label>
+        <label class="form-label" for="reviewText">Sua nota</label>
         <div class="star-picker" id="starPicker" role="group" aria-label="Escolha sua nota">
           <span class="star-pick active" data-v="1" onclick="setRating(1)" title="1 estrela">⭐</span>
           <span class="star-pick active" data-v="2" onclick="setRating(2)" title="2 estrelas">⭐</span>
@@ -297,9 +297,8 @@
                 <label class="form-label" for="checkoutNeighborhood">Bairro</label>
                 <input class="form-input" type="text" id="checkoutNeighborhood" placeholder="Ex: Vista Alegre"/>
               </div>
-              <div class="form-group">
-                <label class="form-label" for="checkoutCity">Cidade</label>
-                <input class="form-input" type="text" id="checkoutCity" value="São Gonçalo"/>
+              <div class="form-group" style="display:none">
+                <input class="form-input" type="hidden" id="checkoutCity" value="São Gonçalo"/>
               </div>
             </div>
             
