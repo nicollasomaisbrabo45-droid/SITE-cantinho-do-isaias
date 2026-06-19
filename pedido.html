@@ -17,7 +17,7 @@
 <!-- NAVBAR SIMPLIFICADA -->
 <nav class="navbar" style="justify-content: center;">
   <a href="index.html" class="nav-logo">
-    <img src="img/logo.jpg" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--fire);" />
+    <img src="img/logo.jpg" alt="Cantinho do Isaias Logo" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--fire); box-shadow: 0 0 8px rgba(255,69,0,0.6);" />
     <div class="nav-logo-text">Cantinho do <em>Isaias</em></div>
   </a>
 </nav>
@@ -119,6 +119,18 @@
       return;
     }
 
+    if (orderId.startsWith('local-')) {
+      // Usar fallback local
+      const localOrders = JSON.parse(localStorage.getItem('ciOrders') || '[]');
+      const order = localOrders.find(o => String(o.id) === orderId);
+      if (order) {
+        renderOrder(order);
+      } else {
+        showError();
+      }
+      return;
+    }
+
     // Se houver supabase, busca dados
     if (window.supabase) {
       try {
@@ -136,10 +148,6 @@
         showError();
       }
     } else {
-      // Tenta achar no localstorage (fallback simulação local)
-      const localOrders = JSON.parse(localStorage.getItem('ciOrders') || '[]');
-      // No local, salvamos algo simplificado. 
-      // Se não achar, só exibe erro.
       showError();
     }
   });
@@ -153,7 +161,7 @@
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('orderContent').style.display = 'block';
 
-    const orderShort = String(order.id).substring(0, 4).toUpperCase();
+    const orderShort = order.num || String(order.id).substring(0, 4).toUpperCase();
     document.getElementById('orderNumDisplay').textContent = `Pedido #${orderShort}`;
 
     updateStepper(order.status || 'recebido');

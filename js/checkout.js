@@ -583,17 +583,14 @@ async function criarPedido() {
   };
 
   const orderData = {
-    total_amount: total,
+    total,
     delivery_fee: checkoutDeliveryFee,
-    customer_name: (currentUser && currentUser.user_metadata?.name) || 'Cliente',
-    address_street: address.street,
-    address_number: address.number,
-    address_neighborhood: address.neighborhood,
-    address_complement: address.complement,
-    payment_method: checkoutSelectedPayment,
+    discount_amount: discountAmt,
+    coupon_code: checkoutCouponCode || null,
+    delivery_type: 'entrega',
+    address,
     status: 'recebido',
-    status_pagamento: checkoutSelectedPayment === 'pix_antecipado' ? 'pago' : 'pendente',
-    is_delivery: true
+    status_pagamento: checkoutSelectedPayment === 'pix_antecipado' ? 'pago' : 'pendente'
   };
 
   if (currentUser && currentUser.id) orderData.user_id = currentUser.id;
@@ -601,64 +598,98 @@ async function criarPedido() {
   try {
     let orderId = null;
     let orderNum = '';
+    let useFallback = false;
 
     if (supabase) {
-      const { data: orderResponse, error: orderError } = await supabase
-        .from('orders').insert([orderData]).select().single();
-      if (orderError) throw orderError;
+      try {
+        const { data: orderResponse, error: orderError } = await supabase
+          .from('orders').insert([orderData]).select().single();
+        if (orderError) throw orderError;
 
-      orderId = orderResponse.id;
-      // Pega os primeiros 4 caracteres do UUID para exibir como número curto (exemplo simplificado)
-      orderNum = String(orderResponse.id).substring(0, 4).toUpperCase();
+        orderId = orderResponse.id;
+        // Pega os primeiros 4 caracteres do UUID (ou ID numérico)
+        orderNum = String(orderResponse.id).substring(0, 4).toUpperCase();
 
-      const itemsToInsert = cart.map(item => ({
-        order_id: orderResponse.id,
-        item_id: item.id,
-        item_name: item.name,
-        unit_price: item.price,
-        quantity: item.qty,
-        total_price: item.price * item.qty
-      }));
-      const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert);
-      if (itemsError) throw itemsError;
-
+        const itemsToInsert = cart.map(item => ({
+          order_id: orderResponse.id,
+          menu_id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.qty
+        }));
+        const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert);
+        if (itemsError) throw itemsError;
+      } catch (err) {
+        console.warn('⚠️ Erro ao salvar no Supabase, usando Fallback Local:', err);
+        useFallback = true;
+      }
     } else {
+      useFallback = true;
+    }
+
+    if (useFallback) {
       // Fallback Local
       orderId = 'local-' + Date.now();
       orderCount++;
       localStorage.setItem('ciOrderCount', orderCount);
       orderNum = String(orderCount).padStart(4, '0');
+      
+      const localOrder = {
+        id: orderId,
+        num: orderNum,
+        date: new Date().toLocaleString('pt-BR'),
+        order_items: cart.map(c => ({ 
+          item_name: c.name, 
+          quantity: c.qty,
+          total_price: c.price * c.qty
+        })),
+        total_amount: total,
+        address_street: address.street,
+        address_number: address.number,
+        address_neighborhood: address.neighborhood,
+        payment_method: checkoutSelectedPayment,
+        status: 'recebido'
+      };
+      const orders = JSON.parse(localStorage.getItem('ciOrders') || '[]');
+      orders.push(localOrder);
+      localStorage.setItem('ciOrders', JSON.stringify(orders));
     }
 
     // ─── GERAR MENSAGEM DO WHATSAPP ───
     let textoPagamento = '';
-    if (checkoutSelectedPayment === 'pix_antecipado') textoPagamento = "Pagamento via Pix (JÁ PAGO ✅)";
-    else if (checkoutSelectedPayment === 'pix_entrega') textoPagamento = "Pagamento em Pix na entrega";
-    else if (checkoutSelectedPayment === 'credito_entrega') textoPagamento = "Pagamento em Cartão de Crédito na entrega";
-    else if (checkoutSelectedPayment === 'debito_entrega') textoPagamento = "Pagamento em Cartão de Débito na entrega";
+    if (checkoutSelectedPayment === 'pix_antecipado') textoPagamento = "(Pagamento via Pix JÁ PAGO ✅)";
+    else if (checkoutSelectedPayment === 'pix_entrega') textoPagamento = "(Pagamento em Pix na entrega)";
+    else if (checkoutSelectedPayment === 'credito_entrega') textoPagamento = "(Pagamento em Cartão de Crédito na entrega)";
+    else if (checkoutSelectedPayment === 'debito_entrega') textoPagamento = "(Pagamento em Cartão de Débito na entrega)";
 
-    const fTempo = calcBikeTime(checkoutDeliveryFee > 2 ? checkoutDeliveryFee * 1.5 : 2); // mockup estimativa
     const hAgora = new Date();
-    const hFim = new Date(hAgora.getTime() + fTempo * 60000);
+    const hFim40 = new Date(hAgora.getTime() + 40 * 60000);
+    const hFim60 = new Date(hAgora.getTime() + 60 * 60000);
     const formatoHora = (d) => d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 
-    let wappMsg = `✅ *NOVO PEDIDO*\n-----------------------------\n▶️ *RESUMO DO PEDIDO*\n\nPedido #${orderNum}\n\n`;
+    let wappMsg = ` ✅  *NOVO PEDIDO*\n-----------------------------\n▶️ *RESUMO DO PEDIDO*\n\nPedido #${orderNum}\n\n`;
 
     cart.forEach(item => {
       wappMsg += `*${item.qty}x* _${item.name}_\n`;
-      // Observações podem ser inseridas se tivéssemos no cart
       wappMsg += `*Subtotal do item: R$ ${fmtPrice(item.price * item.qty)}*\n`;
       wappMsg += ` -  -  -  -  -  -  -  -  -  -  -\n`;
     });
 
     wappMsg += `\n*SUBTOTAL:* R$ ${fmtPrice(subtotal)}\n`;
     wappMsg += `------------------------------------------\n▶️ *Dados para entrega*\n\n`;
-    wappMsg += `*Nome:* ${orderData.customer_name}\n`;
+    
+    const nomeCliente = (currentUser && currentUser.user_metadata?.name) || 'Cliente';
+    wappMsg += `*Nome:* ${nomeCliente}\n`;
     wappMsg += `*Endereço:* ${address.street}, ${address.number}\n`;
     wappMsg += `*Bairro:* ${address.neighborhood}\n`;
-    if (address.complement) wappMsg += `*Complemento:* ${address.complement}\n`;
-    wappMsg += `\n*Taxa de Entrega:* R$ ${fmtPrice(checkoutDeliveryFee)}\n`;
-    wappMsg += `🕙 *Tempo de Entrega:* aprox. ${formatoHora(hAgora)} a ${formatoHora(hFim)}\n`;
+    if (address.complement) {
+      wappMsg += `*Complemento:* ${address.complement}\n\n`;
+    } else {
+      wappMsg += `\n`;
+    }
+    
+    wappMsg += `*Taxa de Entrega:* R$ ${fmtPrice(checkoutDeliveryFee)}\n`;
+    wappMsg += `▶️ *Tempo de Entrega:* aprox. ${formatoHora(hFim40)} a ${formatoHora(hFim60)}\n`;
     wappMsg += `-------------------------------\n▶️ *TOTAL* = *R$ ${fmtPrice(total)}*\n------------------------------\n`;
     wappMsg += `▶️ *PAGAMENTO*\n\n${textoPagamento}\n`;
 
