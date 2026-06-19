@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Acompanhar Pedido | Cantinho do Isaias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/variables.css"/>
+<link rel="stylesheet" href="css/base.css"/>
+<link rel="stylesheet" href="css/navbar.css"/>
+<link rel="stylesheet" href="css/pedido.css"/>
+</head>
+<body>
+
+<!-- NAVBAR SIMPLIFICADA -->
+<nav class="navbar" style="justify-content: center;">
+  <a href="index.html" class="nav-logo">
+    <img src="img/logo.jpg" alt="Logo" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--fire);" />
+    <div class="nav-logo-text">Cantinho do <em>Isaias</em></div>
+  </a>
+</nav>
+
+<main class="pedido-container">
+  
+  <div id="loadingState" class="loading-spinner">
+    ⏳ Carregando dados do pedido...
+  </div>
+
+  <div id="errorState" style="display:none; text-align:center; padding: 2rem;">
+    <h2>❌ Pedido não encontrado</h2>
+    <p style="color:var(--ash); margin-top:10px;">Verifique o link ou retorne à página inicial.</p>
+    <a href="index.html" class="btn-fire" style="display:inline-block; margin-top:20px; text-decoration:none;">Voltar ao Início</a>
+  </div>
+
+  <div id="orderContent" style="display:none;">
+    <div class="pedido-header">
+      <h1 id="orderNumDisplay">Pedido #----</h1>
+      <p>Acompanhe o status do seu pedido em tempo real.</p>
+    </div>
+
+    <!-- STEPPER -->
+    <div class="stepper-card">
+      <div class="stepper">
+        <div class="step" id="step_recebido">
+          <div class="step-icon">📋</div>
+          <div class="step-content">
+            <div class="step-title">Pedido Recebido</div>
+            <div class="step-desc">Seu pedido chegou até nós e está na fila.</div>
+          </div>
+        </div>
+        <div class="step" id="step_preparando">
+          <div class="step-icon">👨‍🍳</div>
+          <div class="step-content">
+            <div class="step-title">Em Preparo</div>
+            <div class="step-desc">Nossa equipe está preparando seu lanche.</div>
+          </div>
+        </div>
+        <div class="step" id="step_saiu_para_entrega">
+          <div class="step-icon">🛵</div>
+          <div class="step-content">
+            <div class="step-title">Saiu para Entrega</div>
+            <div class="step-desc" id="entregaDesc">O entregador está a caminho do seu endereço.</div>
+          </div>
+        </div>
+        <div class="step" id="step_entregue">
+          <div class="step-icon">🏠</div>
+          <div class="step-content">
+            <div class="step-title">Entregue</div>
+            <div class="step-desc">Pedido entregue com sucesso. Bom apetite!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESUMO -->
+    <div class="resume-card">
+      <div class="resume-title">Resumo do Pedido</div>
+      
+      <div id="resumeItemsList" style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px dashed var(--border);">
+        <!-- Itens inseridos dinamicamente -->
+      </div>
+
+      <div class="resume-row">
+        <span>Endereço:</span>
+        <span id="resumeAddress" style="text-align:right; max-width:60%; color:var(--ash)"></span>
+      </div>
+      <div class="resume-row">
+        <span>Pagamento:</span>
+        <span id="resumePayment" style="text-transform: capitalize; color:var(--ash)"></span>
+      </div>
+      
+      <div class="resume-row total">
+        <span>Total:</span>
+        <span id="resumeTotal" class="fire"></span>
+      </div>
+    </div>
+
+    <a href="https://wa.me/5521966089311" class="btn-whatsapp" target="_blank" rel="noopener">
+      💬 Falar com o Estabelecimento
+    </a>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+  // UTILITÁRIO
+  const fmtPrice = (val) => Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('id');
+
+    if (!orderId) {
+      showError();
+      return;
+    }
+
+    // Se houver supabase, busca dados
+    if (window.supabase) {
+      try {
+        const { data: order, error } = await supabase
+          .from('orders')
+          .select('*, order_items(*)')
+          .eq('id', orderId)
+          .single();
+          
+        if (error || !order) throw error;
+        renderOrder(order);
+        subscribeToOrder(orderId);
+      } catch (err) {
+        console.error('Erro ao buscar pedido:', err);
+        showError();
+      }
+    } else {
+      // Tenta achar no localstorage (fallback simulação local)
+      const localOrders = JSON.parse(localStorage.getItem('ciOrders') || '[]');
+      // No local, salvamos algo simplificado. 
+      // Se não achar, só exibe erro.
+      showError();
+    }
+  });
+
+  function showError() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('errorState').style.display = 'block';
+  }
+
+  function renderOrder(order) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('orderContent').style.display = 'block';
+
+    const orderShort = String(order.id).substring(0, 4).toUpperCase();
+    document.getElementById('orderNumDisplay').textContent = `Pedido #${orderShort}`;
+
+    updateStepper(order.status || 'recebido');
+
+    const address = `${order.address_street}, ${order.address_number} - ${order.address_neighborhood}`;
+    document.getElementById('resumeAddress').textContent = address;
+    
+    let pm = order.payment_method;
+    if (pm === 'pix_antecipado') pm = 'Pix (Pago)';
+    if (pm === 'pix_entrega') pm = 'Pix na Entrega';
+    if (pm === 'credito_entrega') pm = 'Cartão de Crédito';
+    if (pm === 'debito_entrega') pm = 'Cartão de Débito';
+    document.getElementById('resumePayment').textContent = pm;
+
+    document.getElementById('resumeTotal').textContent = `R$ ${fmtPrice(order.total_amount)}`;
+
+    const itemsHtml = (order.order_items || []).map(i => `
+      <div style="display:flex; justify-content:space-between; margin-bottom: 5px; font-size:0.9rem; color:var(--charcoal)">
+        <span>${i.quantity}x ${i.item_name}</span>
+        <span>R$ ${fmtPrice(i.total_price)}</span>
+      </div>
+    `).join('');
+    document.getElementById('resumeItemsList').innerHTML = itemsHtml;
+  }
+
+  function updateStepper(status) {
+    const steps = ['recebido', 'preparando', 'saiu_para_entrega', 'entregue'];
+    const idx = steps.indexOf(status);
+    
+    steps.forEach((s, i) => {
+      const el = document.getElementById('step_' + s);
+      if (!el) return;
+      el.className = 'step'; // reseta
+      if (i < idx) {
+        el.classList.add('completed');
+        el.querySelector('.step-icon').textContent = '✓';
+      } else if (i === idx) {
+        el.classList.add('active');
+      }
+    });
+
+    if (status === 'cancelado') {
+      document.getElementById('orderNumDisplay').textContent += ' (CANCELADO)';
+      document.getElementById('orderNumDisplay').style.color = '#e74c3c';
+    }
+  }
+
+  function subscribeToOrder(orderId) {
+    if (!window.supabase) return;
+    supabase
+      .channel('public:orders')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` }, payload => {
+        if (payload.new && payload.new.status) {
+          updateStepper(payload.new.status);
+        }
+      })
+      .subscribe();
+  }
+</script>
+</body>
+</html>

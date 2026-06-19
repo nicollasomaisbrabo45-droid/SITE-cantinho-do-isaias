@@ -1,0 +1,205 @@
+/* ═══════════════════════════════════════
+   PEDIDO — pedido.css
+   Estilos da página de rastreio de pedido
+   ═══════════════════════════════════════ */
+
+body {
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.pedido-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  flex: 1;
+  width: 100%;
+}
+
+.pedido-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.pedido-header h1 {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 2.5rem;
+  color: var(--charcoal);
+  letter-spacing: 0.05em;
+}
+
+.pedido-header p {
+  color: var(--ash);
+  font-size: 0.95rem;
+  margin-top: 5px;
+}
+
+/* ─── STEPPER (LINHA DO TEMPO) ─── */
+.stepper-card {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--r);
+  padding: 2rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+}
+
+.stepper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+}
+
+.stepper::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 20px;
+  width: 2px;
+  background: var(--border);
+  z-index: 1;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  position: relative;
+  z-index: 2;
+  opacity: 0.4;
+  transition: all 0.3s;
+}
+
+.step.active {
+  opacity: 1;
+}
+
+.step.completed {
+  opacity: 1;
+}
+
+.step-icon {
+  width: 42px;
+  height: 42px;
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+.step.active .step-icon {
+  border-color: var(--fire);
+  background: var(--fire);
+  color: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 45, 0, 0.15);
+  animation: pulse 2s infinite;
+}
+
+.step.completed .step-icon {
+  border-color: #27AE60;
+  background: #27AE60;
+  color: #fff;
+}
+
+.step-content {
+  padding-top: 8px;
+}
+
+.step-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--charcoal);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.step-desc {
+  font-size: 0.85rem;
+  color: var(--ash);
+  margin-top: 3px;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 45, 0, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(255, 45, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 45, 0, 0); }
+}
+
+/* ─── RESUMO DO PEDIDO ─── */
+.resume-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--r);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.resume-title {
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.4rem;
+  color: var(--charcoal);
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 8px;
+}
+
+.resume-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: var(--charcoal);
+  margin-bottom: 8px;
+}
+
+.resume-row.total {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 2px dashed var(--border);
+}
+
+.btn-whatsapp {
+  width: 100%;
+  padding: 14px;
+  background: #25D366;
+  color: #fff;
+  border: none;
+  border-radius: var(--rpill);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-whatsapp:hover {
+  background: #1EBE5D;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 3rem;
+  color: var(--ash);
+  font-size: 1.1rem;
+  font-weight: 600;
+}

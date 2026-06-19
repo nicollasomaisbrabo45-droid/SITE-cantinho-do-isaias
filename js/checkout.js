@@ -20,6 +20,9 @@ let checkoutCouponCode = '';
 let checkoutSelectedLocation = null;
 let orderCount = parseInt(localStorage.getItem('ciOrderCount') || '0');
 
+let checkoutCurrentStep = 'location'; // 'location', 'payment', 'pix'
+let checkoutSelectedPayment = null;
+
 // ─── CUPONS VÁLIDOS ───────────────────────────────────────────
 // Formato: { CÓDIGO: porcentagem_de_desconto }
 const VALID_COUPONS = {
@@ -458,18 +461,113 @@ async function renderCheckoutPage() {
   updateCheckoutTotals();
 }
 
-// ─── FINALIZAR PEDIDO ─────────────────────────────────────────
-async function submitCheckoutOrder() {
+// ─── FLUXO DE CHECKOUT (MULTI-STEP) ───────────────────────────
+
+function handleCheckoutNextStep() {
   if (cart.length === 0) { showToast('⚠️ Adicione itens ao carrinho antes de finalizar.'); return; }
 
-
-  const street = (document.getElementById('checkoutStreet')?.value || '').trim();
-  if (!street) {
-    showToast('📍 Informe seu endereço de entrega antes de finalizar!');
+  if (checkoutCurrentStep === 'location') {
+    const street = (document.getElementById('checkoutStreet')?.value || '').trim();
+    if (!street) {
+      showToast('📍 Informe seu endereço de entrega antes de continuar!');
+      return;
+    }
+    // Vai para pagamento
+    checkoutCurrentStep = 'payment';
+    document.getElementById('checkoutStepLocation').style.display = 'none';
+    document.getElementById('checkoutStepPayment').style.display = 'block';
+    
+    document.getElementById('checkoutNextBtn').textContent = 'Confirmar Pedido →';
+    document.getElementById('checkoutBackBtn').textContent = '← Voltar para Localização';
     return;
   }
 
-  const btn = document.getElementById('checkoutConfirmBtn');
+  if (checkoutCurrentStep === 'payment') {
+    if (!checkoutSelectedPayment) {
+      showToast('💳 Selecione uma forma de pagamento!');
+      return;
+    }
+
+    if (checkoutSelectedPayment === 'pix_antecipado') {
+      // Vai para a tela do Pix
+      checkoutCurrentStep = 'pix';
+      document.getElementById('checkoutStepPayment').style.display = 'none';
+      document.getElementById('checkoutStepPix').style.display = 'block';
+      
+      const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
+      const discountAmt = checkoutDiscountPct > 0 ? subtotal * (checkoutDiscountPct / 100) : 0;
+      const total = Math.max(0, subtotal + checkoutDeliveryFee - discountAmt);
+      
+      document.getElementById('pixValorDisplay').textContent = `R$ ${fmtPrice(total)}`;
+      
+      document.getElementById('checkoutNextBtn').style.display = 'none';
+      document.getElementById('checkoutBackBtn').textContent = '← Voltar para Pagamento';
+      return;
+    }
+
+    // Se for pagamento na entrega, finaliza o pedido direto
+    criarPedido();
+  }
+}
+
+function handleCheckoutBackStep() {
+  if (checkoutCurrentStep === 'pix') {
+    checkoutCurrentStep = 'payment';
+    document.getElementById('checkoutStepPix').style.display = 'none';
+    document.getElementById('checkoutStepPayment').style.display = 'block';
+    
+    document.getElementById('checkoutNextBtn').style.display = 'block';
+    document.getElementById('checkoutNextBtn').textContent = 'Confirmar Pedido →';
+    document.getElementById('checkoutBackBtn').textContent = '← Voltar para Localização';
+    return;
+  }
+
+  if (checkoutCurrentStep === 'payment') {
+    checkoutCurrentStep = 'location';
+    document.getElementById('checkoutStepPayment').style.display = 'none';
+    document.getElementById('checkoutStepLocation').style.display = 'block';
+    
+    document.getElementById('checkoutNextBtn').textContent = 'Continuar para Pagamento →';
+    document.getElementById('checkoutBackBtn').textContent = '← Voltar para o Cardápio';
+    return;
+  }
+
+  if (checkoutCurrentStep === 'location') {
+    switchTab('cardapio');
+  }
+}
+
+function selectPaymentMethod(method) {
+  checkoutSelectedPayment = method;
+  const warning = document.getElementById('paymentMachineWarning');
+  if (method === 'credito_entrega' || method === 'debito_entrega') {
+    warning.style.display = 'block';
+  } else {
+    warning.style.display = 'none';
+  }
+}
+
+function copyPixCode() {
+  const input = document.getElementById('pixCopiaCola');
+  input.select();
+  input.setSelectionRange(0, 99999); 
+  navigator.clipboard.writeText(input.value)
+    .then(() => showToast('📋 Código copiado!'))
+    .catch(() => showToast('❌ Erro ao copiar.'));
+}
+
+function simularPagamentoPix() {
+  const overlay = document.getElementById('pixStatusOverlay');
+  overlay.style.display = 'flex';
+  
+  setTimeout(() => {
+    criarPedido();
+  }, 1500);
+}
+
+// ─── FINALIZAR PEDIDO (SUPABASE + WHATSAPP) ───────────────────
+async function criarPedido() {
+  const btn = document.getElementById('checkoutNextBtn');
   if (btn) { btn.disabled = true; btn.textContent = 'Processando...'; }
 
   const subtotal = cart.reduce((s, c) => s + c.price * c.qty, 0);
@@ -477,7 +575,7 @@ async function submitCheckoutOrder() {
   const total = Math.max(0, subtotal + checkoutDeliveryFee - discountAmt);
 
   const address = {
-    street: street,
+    street: document.getElementById('checkoutStreet')?.value || '',
     number: document.getElementById('checkoutNumber')?.value || '',
     complement: document.getElementById('checkoutComplement')?.value || '',
     neighborhood: document.getElementById('checkoutNeighborhood')?.value || '',
@@ -485,113 +583,100 @@ async function submitCheckoutOrder() {
   };
 
   const orderData = {
-    total,
+    total_amount: total,
     delivery_fee: checkoutDeliveryFee,
-    discount_amount: discountAmt,
-    coupon_code: checkoutCouponCode || null,
-    delivery_type: 'entrega',
-    address,
-    status: 'preparando',
+    customer_name: (currentUser && currentUser.user_metadata?.name) || 'Cliente',
+    address_street: address.street,
+    address_number: address.number,
+    address_neighborhood: address.neighborhood,
+    address_complement: address.complement,
+    payment_method: checkoutSelectedPayment,
+    status: 'recebido',
+    status_pagamento: checkoutSelectedPayment === 'pix_antecipado' ? 'pago' : 'pendente',
+    is_delivery: true
   };
+
   if (currentUser && currentUser.id) orderData.user_id = currentUser.id;
 
   try {
-    let orderNumToDisplay = null;
+    let orderId = null;
+    let orderNum = '';
 
     if (supabase) {
       const { data: orderResponse, error: orderError } = await supabase
         .from('orders').insert([orderData]).select().single();
       if (orderError) throw orderError;
 
-      orderNumToDisplay = String(orderResponse.id).padStart(4, '0');
+      orderId = orderResponse.id;
+      // Pega os primeiros 4 caracteres do UUID para exibir como número curto (exemplo simplificado)
+      orderNum = String(orderResponse.id).substring(0, 4).toUpperCase();
 
       const itemsToInsert = cart.map(item => ({
         order_id: orderResponse.id,
-        menu_id: item.id,
-        name: item.name,
-        price: item.price,
+        item_id: item.id,
+        item_name: item.name,
+        unit_price: item.price,
         quantity: item.qty,
+        total_price: item.price * item.qty
       }));
       const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert);
       if (itemsError) throw itemsError;
 
     } else {
+      // Fallback Local
+      orderId = 'local-' + Date.now();
       orderCount++;
       localStorage.setItem('ciOrderCount', orderCount);
-      orderNumToDisplay = String(orderCount).padStart(4, '0');
-      const localOrder = {
-        num: orderNumToDisplay,
-        date: new Date().toLocaleString('pt-BR'),
-        items: cart.map(c => ({ name: c.name, qty: c.qty })),
-        total: fmtPrice(total),
-        address,
-      };
-      const orders = JSON.parse(localStorage.getItem('ciOrders') || '[]');
-      orders.push(localOrder);
-      localStorage.setItem('ciOrders', JSON.stringify(orders));
+      orderNum = String(orderCount).padStart(4, '0');
     }
 
-    // Exibe modal de sucesso
-    document.getElementById('orderNum').textContent = '#' + orderNumToDisplay;
-    document.getElementById('orderTotalDisplay').textContent = 'R$ ' + fmtPrice(total);
-    generateQR(orderNumToDisplay, total);
-    openModal('successModal');
+    // ─── GERAR MENSAGEM DO WHATSAPP ───
+    let textoPagamento = '';
+    if (checkoutSelectedPayment === 'pix_antecipado') textoPagamento = "Pagamento via Pix (JÁ PAGO ✅)";
+    else if (checkoutSelectedPayment === 'pix_entrega') textoPagamento = "Pagamento em Pix na entrega";
+    else if (checkoutSelectedPayment === 'credito_entrega') textoPagamento = "Pagamento em Cartão de Crédito na entrega";
+    else if (checkoutSelectedPayment === 'debito_entrega') textoPagamento = "Pagamento em Cartão de Débito na entrega";
 
-    // Reseta o estado
+    const fTempo = calcBikeTime(checkoutDeliveryFee > 2 ? checkoutDeliveryFee * 1.5 : 2); // mockup estimativa
+    const hAgora = new Date();
+    const hFim = new Date(hAgora.getTime() + fTempo * 60000);
+    const formatoHora = (d) => d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+    let wappMsg = `✅ *NOVO PEDIDO*\n-----------------------------\n▶️ *RESUMO DO PEDIDO*\n\nPedido #${orderNum}\n\n`;
+
+    cart.forEach(item => {
+      wappMsg += `*${item.qty}x* _${item.name}_\n`;
+      // Observações podem ser inseridas se tivéssemos no cart
+      wappMsg += `*Subtotal do item: R$ ${fmtPrice(item.price * item.qty)}*\n`;
+      wappMsg += ` -  -  -  -  -  -  -  -  -  -  -\n`;
+    });
+
+    wappMsg += `\n*SUBTOTAL:* R$ ${fmtPrice(subtotal)}\n`;
+    wappMsg += `------------------------------------------\n▶️ *Dados para entrega*\n\n`;
+    wappMsg += `*Nome:* ${orderData.customer_name}\n`;
+    wappMsg += `*Endereço:* ${address.street}, ${address.number}\n`;
+    wappMsg += `*Bairro:* ${address.neighborhood}\n`;
+    if (address.complement) wappMsg += `*Complemento:* ${address.complement}\n`;
+    wappMsg += `\n*Taxa de Entrega:* R$ ${fmtPrice(checkoutDeliveryFee)}\n`;
+    wappMsg += `🕙 *Tempo de Entrega:* aprox. ${formatoHora(hAgora)} a ${formatoHora(hFim)}\n`;
+    wappMsg += `-------------------------------\n▶️ *TOTAL* = *R$ ${fmtPrice(total)}*\n------------------------------\n`;
+    wappMsg += `▶️ *PAGAMENTO*\n\n${textoPagamento}\n`;
+
+    // Reseta carrinho e UI
     cart = [];
-    checkoutDeliveryFee = 0;
-    checkoutDiscountPct = 0;
-    checkoutCouponCode = '';
-    checkoutSelectedLocation = null;
     updateCartUI();
-    updateCheckoutTotals();
-    document.getElementById('checkoutItemsList').innerHTML = '';
-    document.getElementById('checkoutLogisticsPreview').innerHTML = '';
-    if (document.getElementById('couponFeedback')) {
-      document.getElementById('couponFeedback').textContent = '';
-      document.getElementById('couponCode').value = '';
-    }
-    renderMenu(globalMenu);
+    
+    // Abre WhatsApp
+    const foneLoja = "5521966089311"; // Número oficial
+    const wpLink = `https://wa.me/${foneLoja}?text=${encodeURIComponent(wappMsg)}`;
+    window.open(wpLink, '_blank');
+
+    // Redireciona para acompanhamento
+    window.location.href = `pedido.html?id=${orderId}`;
 
   } catch (error) {
     console.error('Erro ao finalizar pedido:', error);
     showToast('❌ Erro ao processar pedido. Tente novamente.');
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Confirmar e Enviar Pedido →'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'Confirmar Pedido →'; }
   }
-}
-
-// ─── QR CODE ─────────────────────────────────────────────────
-function generateQR(orderNum, total) {
-  const canvas = document.getElementById('qrCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = 145;
-  ctx.clearRect(0, 0, W, W);
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, W, W);
-
-  const seed = orderNum.split('').reduce((a, c) => a + c.charCodeAt(0), 0) + Math.floor(total * 100);
-  const modules = 13;
-  const cell = Math.floor((W - 20) / modules);
-  const offset = 10;
-
-  ctx.fillStyle = '#1A0F05';
-  for (let r = 0; r < modules; r++) {
-    for (let c = 0; c < modules; c++) {
-      if ((r < 4 && c < 4) || (r < 4 && c > 8) || (r > 8 && c < 4)) continue;
-      const v = (seed * (r * 17 + c * 13) * 7) % 3;
-      if (v === 0) ctx.fillRect(offset + c * cell, offset + r * cell, cell, cell);
-    }
-  }
-  [[0,0],[9,0],[0,9]].forEach(([cx, cy]) => {
-    ctx.strokeStyle = '#1A0F05'; ctx.lineWidth = 1.5;
-    ctx.strokeRect(offset + cx * cell, offset + cy * cell, 3.5 * cell, 3.5 * cell);
-    ctx.fillStyle = '#1A0F05';
-    ctx.fillRect(offset + (cx + 1) * cell, offset + (cy + 1) * cell, 1.5 * cell, 1.5 * cell);
-  });
-  ctx.fillStyle = '#FF2D00';
-  ctx.font = 'bold 7px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('CANTINHO DO ISAIAS', W / 2, W - 3);
 }

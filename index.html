@@ -253,9 +253,11 @@
       <!-- Coluna da Esquerda: Localização e Cupom -->
       <div class="checkout-left-col">
         
-        <!-- Bloco 1: Localizações Salvas -->
-        <div class="checkout-section-card">
-          <div class="checkout-section-title">📍 Endereço de Entrega</div>
+        <!-- Passo 1: Localização -->
+        <div id="checkoutStepLocation">
+          <!-- Bloco 1: Localizações Salvas -->
+          <div class="checkout-section-card">
+            <div class="checkout-section-title">📍 Endereço de Entrega</div>
           
           <div class="saved-locations-header">
             <span style="font-size:0.85rem;color:var(--ash);font-weight:600">Selecione uma localização salva:</span>
@@ -324,6 +326,84 @@
 
       </div>
 
+        <!-- Passo 2: Forma de Pagamento -->
+        <div id="checkoutStepPayment" style="display:none;">
+          <div class="checkout-section-card">
+            <div class="checkout-section-title">💳 Como você quer pagar?</div>
+            
+            <div class="payment-group-label">Pagar Agora Online</div>
+            <div class="payment-methods-grid">
+              <label class="payment-method-card" onclick="selectPaymentMethod('pix_antecipado')">
+                <input type="radio" name="paymentMethod" value="pix_antecipado" />
+                <span class="pm-icon">⚡</span>
+                <span class="pm-title">Pix</span>
+                <span class="pm-desc">Aprovação imediata</span>
+              </label>
+            </div>
+
+            <div class="payment-group-label" style="margin-top: 1.5rem;">Pagar na Entrega</div>
+            <div class="payment-methods-grid">
+              <label class="payment-method-card" onclick="selectPaymentMethod('pix_entrega')">
+                <input type="radio" name="paymentMethod" value="pix_entrega" />
+                <span class="pm-icon">📱</span>
+                <span class="pm-title">Pix na Entrega</span>
+              </label>
+              <label class="payment-method-card" onclick="selectPaymentMethod('credito_entrega')">
+                <input type="radio" name="paymentMethod" value="credito_entrega" />
+                <span class="pm-icon">💳</span>
+                <span class="pm-title">Cartão de Crédito</span>
+              </label>
+              <label class="payment-method-card" onclick="selectPaymentMethod('debito_entrega')">
+                <input type="radio" name="paymentMethod" value="debito_entrega" />
+                <span class="pm-icon">💳</span>
+                <span class="pm-title">Cartão de Débito</span>
+              </label>
+            </div>
+
+            <div id="paymentMachineWarning" class="payment-warning" style="display:none;">
+              ⚠️ Tenha a máquina de cartão disponível, o entregador levará a maquininha.
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Passo 3: Pagamento Pix (QR Code) -->
+        <div id="checkoutStepPix" style="display:none;">
+          <div class="checkout-section-card" style="text-align: center;">
+            <div class="checkout-section-title">⚡ Pague com Pix</div>
+            <p style="font-size: 0.9rem; color: var(--ash); margin-bottom: 1.5rem;">
+              Abra o app do seu banco e escaneie o QR Code abaixo ou copie o código Pix Copia e Cola.
+            </p>
+            
+            <div class="pix-qr-container">
+              <!-- Placeholder QR Code para o protótipo -->
+              <img id="pixQRCodeImg" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PIX_MOCK" alt="QR Code Pix" />
+              <div id="pixStatusOverlay" class="pix-status-overlay" style="display:none;">
+                <div class="pix-okay-badge">✅ OKAY</div>
+              </div>
+            </div>
+
+            <div style="font-size: 1.2rem; font-weight: 700; color: var(--charcoal); margin: 1rem 0;">
+              Valor: <span id="pixValorDisplay" class="fire">R$ 0,00</span>
+            </div>
+
+            <div class="pix-copy-paste">
+              <input type="text" id="pixCopiaCola" class="form-input" value="00020126580014br.gov.bcb.pix..." readonly />
+              <button class="btn-fire" onclick="copyPixCode()" style="padding: 10px;">Copiar</button>
+            </div>
+            
+            <p style="font-size: 0.8rem; color: var(--ash-light); margin-top: 1rem;">
+              Após o pagamento, a confirmação pode levar alguns segundos.
+            </p>
+            
+            <div id="pixSimulateBtnContainer" style="margin-top: 20px;">
+              <button class="btn-ghost" style="font-size: 0.8rem;" onclick="simularPagamentoPix()">[Dev] Simular Pagamento Aprovado</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
       <!-- Coluna da Direita: Resumo do Pedido -->
       <div class="checkout-right-col">
         <div class="checkout-section-card">
@@ -352,11 +432,11 @@
             </div>
           </div>
 
-          <button class="checkout-btn" style="margin-top:0;" id="checkoutConfirmBtn" onclick="submitCheckoutOrder()">
-            Confirmar e Enviar Pedido →
+          <button class="checkout-btn" style="margin-top:0;" id="checkoutNextBtn" onclick="handleCheckoutNextStep()">
+            Continuar para Pagamento →
           </button>
           
-          <button class="btn-back-cardapio" onclick="switchTab('cardapio')">
+          <button class="btn-back-cardapio" id="checkoutBackBtn" onclick="handleCheckoutBackStep()">
             ← Voltar para o Cardápio
           </button>
         </div>

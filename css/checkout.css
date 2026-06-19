@@ -352,3 +352,136 @@
   background: var(--cream);
   color: var(--charcoal);
 }
+
+/* ─── FORMA DE PAGAMENTO ─── */
+.payment-group-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--charcoal);
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: 'Barlow Condensed', sans-serif;
+}
+
+.payment-methods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.payment-method-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 1rem;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+}
+
+.payment-method-card:hover {
+  border-color: var(--ember);
+  background: #FFF3E5;
+  transform: translateY(-2px);
+}
+
+.payment-method-card input[type="radio"] {
+  display: none;
+}
+
+.payment-method-card:has(input:checked) {
+  border-color: #27AE60;
+  background: rgba(39, 174, 96, 0.04);
+  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.12);
+}
+
+.pm-icon {
+  font-size: 1.8rem;
+  margin-bottom: 4px;
+}
+
+.pm-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--charcoal);
+}
+
+.pm-desc {
+  font-size: 0.75rem;
+  color: var(--ash);
+}
+
+.payment-warning {
+  margin-top: 15px;
+  background: #FFF3E5;
+  border-left: 4px solid var(--ember);
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  color: var(--charcoal);
+  border-radius: var(--r-sm);
+}
+
+/* ─── PAGAMENTO PIX ─── */
+.pix-qr-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  border: 4px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 10px;
+  background: var(--white);
+}
+
+.pix-qr-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pix-status-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(2px);
+}
+
+.pix-okay-badge {
+  background: #27AE60;
+  color: #fff;
+  font-family: 'Bebas Neue', cursive;
+  font-size: 1.8rem;
+  padding: 8px 24px;
+  border-radius: var(--rpill);
+  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.pix-copy-paste {
+  display: flex;
+  gap: 8px;
+  margin-top: 1rem;
+}
+
+.pix-copy-paste input {
+  flex: 1;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: var(--ash);
+  background: var(--surface);
+}
