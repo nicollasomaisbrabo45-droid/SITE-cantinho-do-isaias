@@ -583,12 +583,15 @@ async function criarPedido() {
   };
 
   const orderData = {
-    total,
+    total: total,
     delivery_fee: checkoutDeliveryFee,
-    discount_amount: discountAmt,
-    coupon_code: checkoutCouponCode || null,
-    delivery_type: 'entrega',
-    address,
+    customer_name: (currentUser && currentUser.name) || 'Cliente',
+    address_street: address.street,
+    address_number: address.number,
+    address_neighborhood: address.neighborhood,
+    address_complement: address.complement || null,
+    payment_method: checkoutSelectedPayment,
+    is_delivery: true,
     status: 'recebido',
     status_pagamento: checkoutSelectedPayment === 'pix_antecipado' ? 'pago' : 'pendente'
   };
@@ -607,15 +610,13 @@ async function criarPedido() {
         if (orderError) throw orderError;
 
         orderId = orderResponse.id;
-        // Pega os primeiros 4 caracteres do UUID (ou ID numérico)
         orderNum = String(orderResponse.id).substring(0, 4).toUpperCase();
 
         const itemsToInsert = cart.map(item => ({
           order_id: orderResponse.id,
-          menu_id: item.id,
           name: item.name,
-          price: item.price,
-          quantity: item.qty
+          quantity: item.qty,
+          price: item.price
         }));
         const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert);
         if (itemsError) throw itemsError;
@@ -663,11 +664,11 @@ async function criarPedido() {
     else if (checkoutSelectedPayment === 'debito_entrega') textoPagamento = "(Pagamento em Cartão de Débito na entrega)";
 
     const hAgora = new Date();
+    const hFim30 = new Date(hAgora.getTime() + 30 * 60000);
     const hFim40 = new Date(hAgora.getTime() + 40 * 60000);
-    const hFim60 = new Date(hAgora.getTime() + 60 * 60000);
     const formatoHora = (d) => d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 
-    let wappMsg = ` ✅  *NOVO PEDIDO*\n-----------------------------\n▶️ *RESUMO DO PEDIDO*\n\nPedido #${orderNum}\n\n`;
+    let wappMsg = `✓  *NOVO PEDIDO*\n-----------------------------\n► *RESUMO DO PEDIDO*\n\nPedido #${orderNum}\n\n`;
 
     cart.forEach(item => {
       wappMsg += `*${item.qty}x* _${item.name}_\n`;
@@ -676,9 +677,9 @@ async function criarPedido() {
     });
 
     wappMsg += `\n*SUBTOTAL:* R$ ${fmtPrice(subtotal)}\n`;
-    wappMsg += `------------------------------------------\n▶️ *Dados para entrega*\n\n`;
+    wappMsg += `------------------------------------------\n► *Dados para entrega*\n\n`;
     
-    const nomeCliente = (currentUser && currentUser.user_metadata?.name) || 'Cliente';
+    const nomeCliente = (currentUser && currentUser.name) || 'Cliente';
     wappMsg += `*Nome:* ${nomeCliente}\n`;
     wappMsg += `*Endereço:* ${address.street}, ${address.number}\n`;
     wappMsg += `*Bairro:* ${address.neighborhood}\n`;
@@ -689,9 +690,9 @@ async function criarPedido() {
     }
     
     wappMsg += `*Taxa de Entrega:* R$ ${fmtPrice(checkoutDeliveryFee)}\n`;
-    wappMsg += `▶️ *Tempo de Entrega:* aprox. ${formatoHora(hFim40)} a ${formatoHora(hFim60)}\n`;
-    wappMsg += `-------------------------------\n▶️ *TOTAL* = *R$ ${fmtPrice(total)}*\n------------------------------\n`;
-    wappMsg += `▶️ *PAGAMENTO*\n\n${textoPagamento}\n`;
+    wappMsg += `► *Tempo de Entrega:* 30 a 40 minutos\n`;
+    wappMsg += `-------------------------------\n► *TOTAL* = *R$ ${fmtPrice(total)}*\n------------------------------\n`;
+    wappMsg += `► *PAGAMENTO*\n\n${textoPagamento}\n`;
 
     // Reseta carrinho e UI
     cart = [];

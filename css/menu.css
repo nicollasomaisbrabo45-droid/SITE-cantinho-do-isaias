@@ -308,7 +308,7 @@
 }
 
 /* ─── ABA DE PEDIDOS ─── */
-#tab-pedidos { padding: 2.5rem; }
+#tab-pedidos { padding: 2.5rem; min-height: calc(100vh - 64px); }
 .order-card {
   background: var(--white);
   border-radius: var(--r);
@@ -347,8 +347,6 @@
   justify-content: space-between;
 }
 .order-status {
-  background: rgba(39, 174, 96, 0.1);
-  color: #27AE60;
   padding: 5px 14px;
   border-radius: var(--rpill);
   font-size: 0.75rem;
@@ -356,7 +354,31 @@
   font-family: 'Barlow Condensed', sans-serif;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+}
+.order-status.status-recebido {
+  background: rgba(52, 152, 219, 0.1);
+  color: #2980B9;
+  border: 1px solid rgba(52, 152, 219, 0.3);
+}
+.order-status.status-preparando {
+  background: rgba(230, 126, 34, 0.1);
+  color: #E67E22;
+  border: 1px solid rgba(230, 126, 34, 0.3);
+}
+.order-status.status-entrega {
+  background: rgba(155, 89, 182, 0.1);
+  color: #8E44AD;
+  border: 1px solid rgba(155, 89, 182, 0.3);
+}
+.order-status.status-entregue {
+  background: rgba(39, 174, 96, 0.1);
+  color: #27AE60;
   border: 1px solid rgba(39, 174, 96, 0.25);
+}
+.order-status.status-cancelado {
+  background: rgba(231, 76, 60, 0.1);
+  color: #E74C3C;
+  border: 1px solid rgba(231, 76, 60, 0.3);
 }
 .order-total {
   font-family: 'Bebas Neue', cursive;

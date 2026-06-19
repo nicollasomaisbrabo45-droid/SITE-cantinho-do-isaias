@@ -269,20 +269,30 @@ async function renderOrders() {
       if (error) throw error;
       
       ordersToRender = data.map(o => ({
-        num: String(o.id).padStart(4, '0'),
+        id: o.id,
+        num: String(o.id).substring(0, 4).toUpperCase(),
         date: new Date(o.created_at).toLocaleString('pt-BR'),
-        items: o.order_items.map(i => ({ qty: i.quantity, name: i.name })),
-        total: fmtPrice(Number(o.total)),
-        status: o.status
+        items: (o.order_items || []).map(i => ({ qty: i.quantity, name: i.name || '?' })),
+        total: fmtPrice(Number(o.total || 0)),
+        status: o.status || 'recebido'
       }));
 
     } catch (e) {
       console.error('Erro ao buscar pedidos:', e);
+      cont.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--ash)">Erro ao carregar pedidos. Tente novamente.</div>`;
+      return;
     }
   } else {
     // Modo local / Fallback
-    ordersToRender = JSON.parse(localStorage.getItem('ciOrders') || '[]');
-    ordersToRender = [...ordersToRender].reverse();
+    const raw = JSON.parse(localStorage.getItem('ciOrders') || '[]');
+    ordersToRender = [...raw].reverse().map(o => ({
+      id: o.id,
+      num: o.num || String(o.id).substring(0, 4).toUpperCase(),
+      date: o.date || '',
+      items: (o.order_items || []).map(i => ({ qty: i.quantity, name: i.item_name || '?' })),
+      total: fmtPrice(Number(o.total_amount || 0)),
+      status: o.status || 'recebido'
+    }));
   }
 
   if (ordersToRender.length === 0) {
@@ -298,21 +308,36 @@ async function renderOrders() {
     return;
   }
 
-  cont.innerHTML = ordersToRender.map(o => `
+  const statusLabel = (s) => {
+    if (s === 'recebido')           return { label: '📋 Recebido',          cls: 'status-recebido' };
+    if (s === 'preparando')         return { label: '⏳ Preparando',        cls: 'status-preparando' };
+    if (s === 'saiu_para_entrega')  return { label: '🛵 Saiu p/ Entrega',   cls: 'status-entrega' };
+    if (s === 'entregue')           return { label: '✅ Entregue',           cls: 'status-entregue' };
+    if (s === 'cancelado')          return { label: '❌ Cancelado',          cls: 'status-cancelado' };
+    return { label: s, cls: '' };
+  };
+
+  cont.innerHTML = ordersToRender.map(o => {
+    const st = statusLabel(o.status);
+    const itensTexto = o.items.length > 0 
+      ? o.items.map(i => `${i.qty}× ${i.name}`).join(' · ')
+      : 'Detalhes não disponíveis';
+    return `
     <div class="order-card fade-in">
       <div class="order-card-head">
         <span class="order-num">#${o.num}</span>
         <span class="order-date">${o.date}</span>
       </div>
-      <div class="order-items">${o.items.map(i => `${i.qty}× ${i.name}`).join(' · ')}</div>
+      <div class="order-items">${itensTexto}</div>
       <div class="order-foot">
-        <span class="order-status ${o.status === 'preparando' ? 'preparando' : ''}">
-          ${o.status === 'preparando' ? '⏳ Preparando' : '✅ Entregue'}
-        </span>
-        <span class="order-total">R$ ${o.total}</span>
+        <span class="order-status ${st.cls}">${st.label}</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="order-total">R$ ${o.total}</span>
+          <a href="pedido.html?id=${o.id}" style="font-size:0.78rem;color:var(--ember);font-weight:700;text-decoration:none;white-space:nowrap;" title="Acompanhar">Acompanhar →</a>
+        </div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function renderReviewsUI(reviews) {
