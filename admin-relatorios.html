@@ -150,8 +150,6 @@ body { background: #0d0d0f; min-height: 100vh; color: #fff; }
   .day-badge { align-self: flex-start; }
 }
 </style>
-<script> window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); }; </script>
-<script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
 
@@ -338,9 +336,28 @@ async function loadReports() {
 
     reportData = data || [];
     
-    if (reportData.length === 0) {
-      renderEmptyState("Nenhum dado financeiro encontrado ainda.");
-      return;
+    // ── GARANTIR QUE O DIA DE HOJE APAREÇA MESMO ZERADO ──
+    const now = new Date();
+    // Se for antes da 1 da manhã, o "dia de vendas" ainda é o dia anterior
+    if (now.getHours() < 1) {
+      now.setDate(now.getDate() - 1);
+    }
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const todayDateStr = `${yyyy}-${mm}-${dd}`;
+    const todayMonthStr = `${yyyy}-${mm}`;
+
+    const hasToday = reportData.some(r => r.report_date === todayDateStr);
+    if (!hasToday) {
+      reportData.unshift({
+        report_date: todayDateStr,
+        report_month: todayMonthStr,
+        total_deliveries: 0,
+        total_sales: 0,
+        total_delivery_sales: 0,
+        total_delivery_fees: 0
+      });
     }
 
     // Agrupar por mês

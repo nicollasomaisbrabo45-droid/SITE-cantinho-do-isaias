@@ -300,8 +300,6 @@
   /* ── GEAR ANIMATION ── */
   .gear-spin { display: inline-block; animation: spin 3s linear infinite; }
 </style>
-<script> window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); }; </script>
-<script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
 
@@ -406,13 +404,12 @@
           </div>
           <span class="tag-soon">Em breve</span>
         </div>
-        <div class="action-card" onclick="adminAction('usuarios')">
+        <div class="action-card" onclick="window.location.href='admin-usuarios.html'">
           <div class="action-card-icon">👥</div>
           <div class="action-card-text">
             <div class="action-card-label">Usuários</div>
             <div class="action-card-desc">Ver contas e gerenciar cargos</div>
           </div>
-          <span class="tag-soon">Em breve</span>
         </div>
         <div class="action-card" onclick="adminAction('promos')">
           <div class="action-card-icon">🔥</div>

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gerenciar Usuários | Admin — Cantinho do Isaias</title>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/variables.css"/>
+<link rel="stylesheet" href="css/base.css"/>
+<link rel="stylesheet" href="css/navbar.css"/>
+<style>
+/* ══════════════════════════════════════
+   BASE & LAYOUT
+══════════════════════════════════════ */
+body { background: #0d0d0f; min-height: 100vh; color: #fff; }
+
+.page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+}
+
+/* ── LOADING / DENIED ── */
+.full-center {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 70vh; gap: 1.5rem; text-align: center;
+}
+.spin {
+  width: 40px; height: 40px; border: 3px solid #2a2a30;
+  border-top-color: var(--fire); border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.access-denied h2 { font-family:'Bebas Neue',sans-serif; font-size:2.5rem; color:#ff4545; }
+.access-denied p { color: var(--ash); }
+.btn-back {
+  background: var(--fire); color:#fff; border:none; padding:0.75rem 2rem;
+  border-radius:999px; font-family:'Barlow Condensed',sans-serif; font-size:1rem;
+  font-weight:700; cursor:pointer; text-decoration:none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.btn-back:hover { opacity:0.85; transform:scale(1.04); }
+
+/* ── COMPONENTES HEADER ── */
+.admin-back-link {
+  display:inline-flex; align-items:center; gap:0.4rem; color:var(--ash);
+  font-size:0.85rem; font-weight:600; text-decoration:none; margin-bottom:1.5rem;
+  transition: color 0.2s;
+}
+.admin-back-link:hover { color:#fff; }
+.admin-badge {
+  background: linear-gradient(135deg,#f5c518,#e6a800); color:#0d0d0f;
+  font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:0.75rem;
+  padding:0.3rem 0.85rem; border-radius:999px; letter-spacing:1px; text-transform:uppercase;
+}
+
+.page-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  flex-wrap: wrap; gap: 1rem; margin-bottom: 2.5rem;
+}
+.page-header h1 {
+  font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem;
+  color: #fff; letter-spacing: 2px; line-height: 1;
+}
+.page-header p { color: var(--ash); font-size: 0.95rem; margin-top: 0.4rem; }
+
+/* ── LAYOUT EM DUAS COLUNAS ── */
+.users-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+@media (max-width: 800px) {
+  .users-layout { grid-template-columns: 1fr; }
+}
+
+.users-column {
+  background: #111115;
+  border: 1px solid #1e1e24;
+  border-radius: 20px;
+  padding: 1.5rem;
+  min-height: 400px;
+}
+.users-column-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #2a2a30;
+}
+.users-column-title {
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 700;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.users-column-count {
+  background: #2a2a30; color: #ccc; font-size: 0.75rem; padding: 0.2rem 0.6rem;
+  border-radius: 999px; font-weight: 700; font-family: 'Barlow', sans-serif;
+}
+
+/* ── CARDS DE USUÁRIO ── */
+.users-grid {
+  display: flex; flex-direction: column; gap: 0.75rem;
+}
+.user-card {
+  background: #18181c; border: 1px solid #2a2a30; border-radius: 12px;
+  padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; transition: all 0.2s;
+}
+.user-card:hover {
+  border-color: var(--fire); background: #1a1a1f; transform: translateY(-2px);
+}
+.user-info {
+  display: flex; align-items: center; gap: 1rem;
+}
+.user-avatar {
+  width: 40px; height: 40px; border-radius: 50%; background: #2a2a30;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.1rem;
+  color: var(--ash);
+}
+.user-details {
+  display: flex; flex-direction: column; gap: 0.15rem;
+}
+.user-name {
+  font-weight: 700; font-size: 0.95rem; color: #fff;
+}
+.user-id {
+  font-size: 0.75rem; font-family: monospace; color: var(--ash);
+  background: rgba(255,255,255,0.05); padding: 0.1rem 0.4rem; border-radius: 4px;
+}
+.user-card-arrow {
+  color: var(--ash); font-size: 1.2rem; transition: color 0.2s;
+}
+.user-card:hover .user-card-arrow { color: var(--fire); }
+
+/* Destacando ADMs */
+.user-card.admin-card { border-left: 3px solid #e6a800; }
+.user-card.admin-card .user-avatar { background: rgba(230,168,0,0.15); color: #e6a800; }
+
+.empty-state { text-align: center; padding: 3rem 1rem; color: var(--ash); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.75); backdrop-filter:blur(4px);
+  z-index:1000; display:none; align-items:center; justify-content:center; padding:1rem;
+}
+.modal-overlay.open { display:flex; }
+.modal-box {
+  background: #18181c; border: 1px solid #2a2a30; border-radius: 24px;
+  width: 100%; max-width: 420px; animation: popIn 0.22s ease;
+}
+@keyframes popIn {
+  from { opacity:0; transform:scale(0.93) translateY(12px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.5rem 1.75rem 0;
+}
+.modal-head h3 { font-family:'Barlow Condensed',sans-serif; font-size:1.3rem; font-weight:700; }
+.modal-close-btn {
+  width:34px; height:34px; border-radius:50%; border:1px solid #2a2a30;
+  background:transparent; color:var(--ash); cursor:pointer; font-size:1.1rem;
+  display:grid; place-items:center; transition: background 0.18s;
+}
+.modal-close-btn:hover { background:#2a2a30; color:#fff; }
+
+.modal-body { padding: 1.5rem 1.75rem 1.75rem; display:flex; flex-direction:column; gap:1.25rem; }
+
+/* Info fields */
+.info-field { display:flex; flex-direction:column; gap:0.3rem; }
+.info-field label { font-size:0.75rem; font-weight:700; color:var(--ash); text-transform:uppercase; letter-spacing:0.5px; }
+.info-field .info-value { font-size:0.95rem; color:#fff; background:#111115; padding:0.8rem 1rem; border-radius:10px; border:1px solid #1e1e24; }
+.info-field .info-value.monospace { font-family: monospace; color: var(--fire); }
+
+/* Select fields */
+.field { display:flex; flex-direction:column; gap:0.4rem; }
+.field label { font-size:0.8rem; font-weight:700; color:var(--ash); text-transform:uppercase; letter-spacing:0.4px; }
+.field select {
+  background:#111115; border:1.5px solid #2a2a30; border-radius:10px;
+  padding:0.8rem 1rem; color:#fff; font-family:'Barlow',sans-serif; font-size:0.95rem;
+  transition: border-color 0.2s; outline:none; width:100%; box-sizing:border-box; cursor: pointer;
+}
+.field select:focus { border-color: var(--fire); }
+
+.modal-footer {
+  display:flex; gap:0.75rem; justify-content:flex-end; padding: 0 1.75rem 1.75rem;
+}
+.btn-cancel {
+  padding:0.65rem 1.3rem; border-radius:10px; border:1.5px solid #2a2a30;
+  background:transparent; color:var(--ash); font-family:'Barlow Condensed',sans-serif;
+  font-size:1rem; font-weight:600; cursor:pointer; transition:all 0.18s;
+}
+.btn-cancel:hover { border-color:#666; color:#fff; }
+.btn-confirm {
+  padding:0.65rem 1.5rem; border-radius:10px; border:none;
+  background:var(--fire); color:#fff; font-family:'Barlow Condensed',sans-serif;
+  font-size:1rem; font-weight:700; cursor:pointer; transition:opacity 0.18s, transform 0.15s;
+}
+.btn-confirm:hover { opacity:0.88; transform:scale(1.03); }
+.btn-confirm:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+/* TOAST */
+.toast-container { position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; display:flex; flex-direction:column; gap:0.5rem; }
+.toast {
+  background:#1e1e24; border:1px solid #2a2a30; color:#fff; padding:0.8rem 1.2rem;
+  border-radius:12px; font-size:0.875rem; font-weight:500; max-width:320px;
+  opacity:0; transform:translateY(8px); transition:all 0.3s;
+}
+.toast.show { opacity:1; transform:translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" role="navigation" aria-label="Menu principal">
+  <a href="index.html" class="nav-logo" id="navLogo">
+    <img src="img/logo.jpg" alt="Cantinho do Isaias Logo" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--fire); box-shadow: 0 0 8px rgba(255,69,0,0.6);" id="navLogoImg" />
+    <div>
+      <div class="nav-logo-text">Cantinho do <em>Isaias</em></div>
+      <div class="nav-logo-sub">Contas</div>
+    </div>
+  </a>
+  <div class="nav-actions">
+    <span class="admin-badge">★ Admin</span>
+    <button class="nav-user" onclick="logout()" style="margin-left:0.5rem" title="Sair">
+      <div class="avatar" id="navAvatar">👤</div>
+      <span id="navUserName">Sair</span>
+    </button>
+  </div>
+</nav>
+
+<!-- LOADING -->
+<div id="pageLoading" class="full-center">
+  <div class="spin"></div>
+  <span style="color:var(--ash)">Carregando usuários…</span>
+</div>
+
+<!-- ACESSO NEGADO -->
+<div id="accessDenied" class="full-center access-denied" style="display:none">
+  <div style="font-size:4rem">🔒</div>
+  <h2>Acesso Restrito</h2>
+  <p>Apenas administradores têm acesso a esta página.</p>
+  <a href="index.html" class="btn-back">← Voltar ao Site</a>
+</div>
+
+<!-- CONTEÚDO ADMIN -->
+<div id="adminContent" class="page-wrapper" style="display:none">
+
+  <a href="admin.html" class="admin-back-link">← Voltar ao Gerenciamento</a>
+
+  <div class="page-header">
+    <div>
+      <h1>👥 Gerenciamento de Usuários</h1>
+      <p>Visualize e altere as permissões de acesso das contas do site.</p>
+    </div>
+  </div>
+
+  <!-- DUAS COLUNAS: ADMS vs CLIENTES -->
+  <div class="users-layout">
+    
+    <!-- COLUNA ADM -->
+    <div class="users-column">
+      <div class="users-column-header">
+        <div class="users-column-title">👮 Administradores</div>
+        <div class="users-column-count" id="countAdms">0</div>
+      </div>
+      <div class="users-grid" id="gridAdms">
+        <div class="empty-state"><div class="spin" style="margin: 0 auto 1rem;"></div>Carregando...</div>
+      </div>
+    </div>
+
+    <!-- COLUNA CLIENTES -->
+    <div class="users-column">
+      <div class="users-column-header">
+        <div class="users-column-title">👥 Clientes</div>
+        <div class="users-column-count" id="countClientes">0</div>
+      </div>
+      <div class="users-grid" id="gridClientes">
+        <div class="empty-state"><div class="spin" style="margin: 0 auto 1rem;"></div>Carregando...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MODAL DE EDIÇÃO DE USUÁRIO
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Edição de Usuário</h3>
+      <button class="modal-close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      
+      <div class="info-field">
+        <label>Nome do Usuário</label>
+        <div class="info-value" id="modalUserName">—</div>
+      </div>
+      
+      <div class="info-field">
+        <label>E-mail</label>
+        <div class="info-value" id="modalUserEmail">—</div>
+      </div>
+      
+      <div class="info-field">
+        <label>ID de Reconhecimento</label>
+        <div class="info-value monospace" id="modalUserId">—</div>
+      </div>
+
+      <div class="field" style="margin-top: 0.5rem;">
+        <label>Cargo / Nível de Acesso</label>
+        <select id="modalUserRole">
+          <option value="cliente">👥 Nenhum / Cliente</option>
+          <option value="admin">👮 ADM (Acesso Total)</option>
+        </select>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-confirm" id="btnSaveRole" onclick="saveUserRole()">Salvar Permissões</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+// ══════════════════════════════════════
+//  ESTADO GLOBAL
+// ══════════════════════════════════════
+let allUsers = [];
+let editingUser = null;
+
+// ══════════════════════════════════════
+//  UTILITÁRIOS
+// ══════════════════════════════════════
+function showToast(msg) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3500);
+}
+
+function logout() {
+  if (window.supabase) window.supabase.auth.signOut();
+  localStorage.removeItem('ciUser');
+  window.location.href = 'index.html';
+}
+
+function fetchAdminLogo() {
+  let logoUrl = 'img/logo.jpg';
+  const localLogo = localStorage.getItem('ci_site_logo');
+  if (localLogo) logoUrl = localLogo;
+  const navImg = document.getElementById('navLogoImg');
+  if (navImg) navImg.src = logoUrl;
+}
+
+// ══════════════════════════════════════
+//  VERIFICAÇÃO DE ACESSO
+// ══════════════════════════════════════
+async function checkAccess() {
+  fetchAdminLogo();
+
+  if (!window.supabase) {
+    showErrorState();
+    return;
+  }
+  const { data: { session } } = await window.supabase.auth.getSession();
+  if (!session) {
+    showErrorState();
+    return;
+  }
+  const { data: profile } = await window.supabase
+    .from('profiles').select('role, nome').eq('id', session.user.id).single();
+  
+  if (!profile || profile.role !== 'admin') {
+    showErrorState();
+    return;
+  }
+  
+  // Acesso OK
+  const nome = profile.nome || session.user.email.split('@')[0];
+  document.getElementById('navUserName').textContent = nome;
+  document.getElementById('navAvatar').textContent   = nome[0].toUpperCase();
+  
+  document.getElementById('pageLoading').style.display  = 'none';
+  document.getElementById('adminContent').style.display = 'block';
+
+  await loadUsers();
+}
+
+function showErrorState() {
+  document.getElementById('pageLoading').style.display = 'none';
+  document.getElementById('accessDenied').style.display = 'flex';
+}
+
+// ══════════════════════════════════════
+//  CARREGAR USUÁRIOS E RENDERIZAR
+// ══════════════════════════════════════
+async function loadUsers() {
+  try {
+    const { data, error } = await window.supabase
+      .from('profiles')
+      .select('id, nome, email, id_reconhecimento, role, created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    allUsers = data || [];
+    renderUsers();
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Erro ao buscar usuários: ' + err.message);
+  }
+}
+
+function renderUsers() {
+  const adms = allUsers.filter(u => u.role === 'admin');
+  const clientes = allUsers.filter(u => u.role !== 'admin');
+
+  document.getElementById('countAdms').textContent = adms.length;
+  document.getElementById('countClientes').textContent = clientes.length;
+
+  document.getElementById('gridAdms').innerHTML = adms.length > 0 
+    ? adms.map(u => buildUserCard(u, true)).join('')
+    : '<div class="empty-state">Nenhum ADM encontrado.</div>';
+
+  document.getElementById('gridClientes').innerHTML = clientes.length > 0 
+    ? clientes.map(u => buildUserCard(u, false)).join('')
+    : '<div class="empty-state">Nenhum Cliente encontrado.</div>';
+}
+
+function buildUserCard(user, isAdmin) {
+  const nomeExibicao = user.nome || user.email.split('@')[0];
+  const avatarLetter = nomeExibicao.charAt(0).toUpperCase();
+  const baseClass = isAdmin ? 'user-card admin-card' : 'user-card';
+
+  return `
+    <div class="${baseClass}" onclick="openUserModal('${user.id}')">
+      <div class="user-info">
+        <div class="user-avatar">${avatarLetter}</div>
+        <div class="user-details">
+          <div class="user-name">${nomeExibicao}</div>
+          <div class="user-id">${user.id_reconhecimento}</div>
+        </div>
+      </div>
+      <div class="user-card-arrow">⚙️</div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════
+//  MODAL DE EDIÇÃO
+// ══════════════════════════════════════
+function openUserModal(userId) {
+  editingUser = allUsers.find(u => u.id === userId);
+  if (!editingUser) return;
+
+  const nomeExibicao = editingUser.nome || 'Não informado';
+  
+  document.getElementById('modalUserName').textContent = nomeExibicao;
+  document.getElementById('modalUserEmail').textContent = editingUser.email;
+  document.getElementById('modalUserId').textContent = editingUser.id_reconhecimento;
+  document.getElementById('modalUserRole').value = editingUser.role === 'admin' ? 'admin' : 'cliente';
+
+  document.getElementById('userModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('userModal').classList.remove('open');
+  editingUser = null;
+}
+
+async function saveUserRole() {
+  if (!editingUser) return;
+  
+  const newRole = document.getElementById('modalUserRole').value;
+  if (newRole === editingUser.role) {
+    closeModal();
+    return;
+  }
+
+  const btn = document.getElementById('btnSaveRole');
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+
+  try {
+    const { error } = await window.supabase
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', editingUser.id);
+
+    if (error) {
+      if (error.code === '42501' || error.message.includes('policy')) {
+        showToast('❌ Permissão Negada! Você precisa rodar o script SQL de admins.');
+      } else {
+        showToast('❌ Erro: ' + error.message);
+      }
+      throw error;
+    }
+
+    // Sucesso, atualiza localmente
+    editingUser.role = newRole;
+    showToast('✅ Permissões atualizadas com sucesso!');
+    closeModal();
+    renderUsers();
+
+  } catch (err) {
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Salvar Permissões';
+  }
+}
+
+// Iniciar
+window.addEventListener('DOMContentLoaded', checkAccess);
+
+</script>
+</body>
+</html>
