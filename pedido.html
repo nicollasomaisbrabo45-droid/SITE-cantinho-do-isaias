@@ -161,7 +161,7 @@
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('orderContent').style.display = 'block';
 
-    const orderShort = order.num || String(order.id).substring(0, 4).toUpperCase();
+    const orderShort = order.order_number ? String(order.order_number).padStart(3, '0') : (order.num || String(order.id).substring(0, 4).toUpperCase());
     document.getElementById('orderNumDisplay').textContent = `Pedido #${orderShort}`;
 
     updateStepper(order.status || 'recebido');

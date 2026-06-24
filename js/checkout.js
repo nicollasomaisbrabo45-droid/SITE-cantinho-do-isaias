@@ -610,7 +610,7 @@ async function criarPedido() {
         if (orderError) throw orderError;
 
         orderId = orderResponse.id;
-        orderNum = String(orderResponse.id).substring(0, 4).toUpperCase();
+        orderNum = orderResponse.order_number ? String(orderResponse.order_number).padStart(3, '0') : String(orderResponse.id).substring(0, 4).toUpperCase();
 
         const itemsToInsert = cart.map(item => ({
           order_id: orderResponse.id,

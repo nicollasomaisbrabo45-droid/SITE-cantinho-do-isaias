@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Relatórios Financeiros | Admin — Cantinho do Isaias</title>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/variables.css"/>
+<link rel="stylesheet" href="css/base.css"/>
+<link rel="stylesheet" href="css/navbar.css"/>
+<style>
+/* ══════════════════════════════════════
+   BASE & LAYOUT
+══════════════════════════════════════ */
+body { background: #0d0d0f; min-height: 100vh; color: #fff; }
+
+.page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 5rem;
+}
+
+/* ── LOADING / DENIED ── */
+.full-center {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 70vh; gap: 1.5rem; text-align: center;
+}
+.spin {
+  width: 40px; height: 40px; border: 3px solid #2a2a30;
+  border-top-color: var(--fire); border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.access-denied h2 { font-family:'Bebas Neue',sans-serif; font-size:2.5rem; color:#ff4545; }
+.access-denied p { color: var(--ash); }
+.btn-back {
+  background: var(--fire); color:#fff; border:none; padding:0.75rem 2rem;
+  border-radius:999px; font-family:'Barlow Condensed',sans-serif; font-size:1rem;
+  font-weight:700; cursor:pointer; text-decoration:none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.btn-back:hover { opacity:0.85; transform:scale(1.04); }
+
+/* ── COMPONENTES HEADER ── */
+.admin-back-link {
+  display:inline-flex; align-items:center; gap:0.4rem; color:var(--ash);
+  font-size:0.85rem; font-weight:600; text-decoration:none; margin-bottom:1.5rem;
+  transition: color 0.2s;
+}
+.admin-back-link:hover { color:#fff; }
+.admin-badge {
+  background: linear-gradient(135deg,#f5c518,#e6a800); color:#0d0d0f;
+  font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:0.75rem;
+  padding:0.3rem 0.85rem; border-radius:999px; letter-spacing:1px; text-transform:uppercase;
+}
+
+.page-header {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  flex-wrap: wrap; gap: 1rem; margin-bottom: 2.5rem;
+}
+.page-header h1 {
+  font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem;
+  color: #fff; letter-spacing: 2px; line-height: 1;
+}
+.page-header p { color: var(--ash); font-size: 0.95rem; margin-top: 0.4rem; }
+
+/* ── TABS (MESES) ── */
+.tabs-container {
+  display: flex; gap: 0.75rem; margin-bottom: 2rem;
+  overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: thin;
+}
+.tabs-container::-webkit-scrollbar { height: 6px; }
+.tabs-container::-webkit-scrollbar-thumb { background: #2a2a30; border-radius: 4px; }
+
+.tab-btn {
+  background: #18181c; border: 1.5px solid #2a2a30; color: var(--ash);
+  padding: 0.6rem 1.4rem; border-radius: 999px; white-space: nowrap;
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.tab-btn:hover { border-color: var(--fire); color: #fff; }
+.tab-btn.active {
+  background: var(--fire); border-color: var(--fire); color: #fff;
+  box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
+}
+
+/* ── REPORT CARDS (DIAS) ── */
+.reports-grid {
+  display: flex; flex-direction: column; gap: 1rem;
+}
+
+.day-card {
+  background: #18181c; border: 1px solid #2a2a30; border-radius: 16px;
+  padding: 1.5rem; transition: border-color 0.2s, transform 0.15s;
+  position: relative; overflow: hidden;
+}
+.day-card:hover { border-color: var(--fire); transform: translateY(-2px); }
+.day-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 4px; background: var(--fire); border-radius: 16px 0 0 16px;
+  opacity: 0; transition: opacity 0.2s;
+}
+.day-card:hover::before { opacity: 1; }
+
+.day-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.25rem; border-bottom: 1px solid #2a2a30; padding-bottom: 0.75rem;
+}
+.day-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: #fff; letter-spacing: 1px;
+}
+.day-badge {
+  background: rgba(39, 174, 96, 0.15); color: #2ecc71;
+  padding: 0.25rem 0.85rem; border-radius: 999px; font-weight: 700; font-size: 0.75rem;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.day-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;
+}
+
+.stat-item {
+  background: #111115; border: 1px solid #1e1e24; border-radius: 12px;
+  padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: 0.4rem;
+}
+.stat-item-label {
+  font-size: 0.75rem; font-weight: 700; color: var(--ash);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.stat-item-value {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem; color: #fff; line-height: 1;
+}
+
+/* Destaque para o Faturamento Geral */
+.stat-item.highlight { border-color: rgba(255, 69, 0, 0.4); background: rgba(255, 69, 0, 0.05); }
+.stat-item.highlight .stat-item-value { color: var(--fire); }
+
+.stat-item.highlight-green { border-color: rgba(39, 174, 96, 0.4); background: rgba(39, 174, 96, 0.05); }
+.stat-item.highlight-green .stat-item-value { color: #2ecc71; }
+
+.empty-state { text-align: center; padding: 4rem 1rem; color: var(--ash); }
+.empty-state .icon { font-size: 4rem; opacity: 0.3; margin-bottom: 1rem; }
+
+/* RESPONSIVO */
+@media (max-width: 600px) {
+  .day-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .day-badge { align-self: flex-start; }
+}
+</style>
+<script> window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); }; </script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" role="navigation" aria-label="Menu principal">
+  <a href="index.html" class="nav-logo" id="navLogo">
+    <img src="img/logo.jpg" alt="Cantinho do Isaias Logo" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--fire); box-shadow: 0 0 8px rgba(255,69,0,0.6);" id="navLogoImg" />
+    <div>
+      <div class="nav-logo-text">Cantinho do <em>Isaias</em></div>
+      <div class="nav-logo-sub">Financeiro</div>
+    </div>
+  </a>
+  <div class="nav-actions">
+    <span class="admin-badge">★ Admin</span>
+    <button class="nav-user" onclick="logout()" style="margin-left:0.5rem" title="Sair">
+      <div class="avatar" id="navAvatar">👤</div>
+      <span id="navUserName">Sair</span>
+    </button>
+  </div>
+</nav>
+
+<!-- LOADING -->
+<div id="pageLoading" class="full-center">
+  <div class="spin"></div>
+  <span style="color:var(--ash)">Verificando permissões e carregando dados…</span>
+</div>
+
+<!-- ACESSO NEGADO -->
+<div id="accessDenied" class="full-center access-denied" style="display:none">
+  <div style="font-size:4rem">🔒</div>
+  <h2>Acesso Restrito</h2>
+  <p>Apenas administradores têm acesso a esta página.</p>
+  <a href="index.html" class="btn-back">← Voltar ao Site</a>
+</div>
+
+<!-- CONTEÚDO ADMIN -->
+<div id="adminContent" class="page-wrapper" style="display:none">
+
+  <a href="admin.html" class="admin-back-link">← Voltar ao Gerenciamento</a>
+
+  <div class="page-header">
+    <div>
+      <h1>📊 Relatórios Financeiros</h1>
+      <p>Acompanhe o faturamento geral e de entregas diário. <br><small style="color:var(--fire)">Obs: O caixa do dia vira sempre às 01:00 da manhã.</small></p>
+    </div>
+  </div>
+
+  <!-- CONTAINER DE ABAS E DADOS -->
+  <div id="reportsContainer">
+    <div class="tabs-container" id="monthsTabs">
+      <!-- Abas dos meses renderizadas via JS -->
+    </div>
+
+    <div class="reports-grid" id="reportsGrid">
+      <!-- Cards dos dias renderizados via JS -->
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer" style="position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999; display:flex; flex-direction:column; gap:0.5rem;"></div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase.js"></script>
+<script>
+// ══════════════════════════════════════
+//  ESTADO GLOBAL
+// ══════════════════════════════════════
+let reportData = []; // Todos os dados de get_financial_reports()
+let groupedData = {}; // Dados agrupados por mês { "2026-06": [...] }
+let currentMonth = null;
+
+const mesesPtBr = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+];
+
+// ══════════════════════════════════════
+//  UTILITÁRIOS
+// ══════════════════════════════════════
+function showToast(msg) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.style.background = '#1e1e24'; t.style.border = '1px solid #2a2a30'; t.style.color = '#fff';
+  t.style.padding = '0.8rem 1.2rem'; t.style.borderRadius = '12px'; t.style.fontSize = '0.875rem';
+  t.style.opacity = '0'; t.style.transform = 'translateY(8px)'; t.style.transition = 'all 0.3s';
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity = '1'; t.style.transform = 'translateY(0)'; }, 10);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3500);
+}
+
+function logout() {
+  if (window.supabase) window.supabase.auth.signOut();
+  localStorage.removeItem('ciUser');
+  window.location.href = 'index.html';
+}
+
+function formatBRL(v) {
+  return parseFloat(v || 0).toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+}
+
+function formatMonthLabel(yyyyMm) {
+  const [yyyy, mm] = yyyyMm.split('-');
+  const nomeMes = mesesPtBr[parseInt(mm, 10) - 1];
+  return `${nomeMes} ${yyyy}`;
+}
+
+function formatDate(dateString) {
+  // Converte YYYY-MM-DD para DD/MM/YYYY
+  const [y, m, d] = dateString.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+// Verifica se a imagem de logo customizada existe
+function fetchAdminLogo() {
+  let logoUrl = 'img/logo.jpg';
+  const localLogo = localStorage.getItem('ci_site_logo');
+  if (localLogo) logoUrl = localLogo;
+  const navImg = document.getElementById('navLogoImg');
+  if (navImg) navImg.src = logoUrl;
+}
+
+// ══════════════════════════════════════
+//  VERIFICAÇÃO DE ACESSO
+// ══════════════════════════════════════
+async function checkAccess() {
+  fetchAdminLogo();
+
+  if (!window.supabase) {
+    showErrorState();
+    return;
+  }
+  const { data: { session } } = await window.supabase.auth.getSession();
+  if (!session) {
+    showErrorState();
+    return;
+  }
+  const { data: profile } = await window.supabase
+    .from('profiles').select('role, nome').eq('id', session.user.id).single();
+  
+  if (!profile || profile.role !== 'admin') {
+    showErrorState();
+    return;
+  }
+  
+  // Acesso OK
+  const nome = profile.nome || session.user.email.split('@')[0];
+  document.getElementById('navUserName').textContent = nome;
+  document.getElementById('navAvatar').textContent   = nome[0].toUpperCase();
+  
+  // Carregar relatórios
+  await loadReports();
+  
+  document.getElementById('pageLoading').style.display  = 'none';
+  document.getElementById('adminContent').style.display = 'block';
+}
+
+function showErrorState() {
+  document.getElementById('pageLoading').style.display = 'none';
+  document.getElementById('accessDenied').style.display = 'flex';
+}
+
+// ══════════════════════════════════════
+//  CARREGAR E RENDERIZAR RELATÓRIOS
+// ══════════════════════════════════════
+async function loadReports() {
+  try {
+    const { data, error } = await window.supabase.rpc('get_financial_reports');
+    
+    if (error) {
+      console.error(error);
+      if (error.code === '42883' || error.message.includes('function get_financial_reports does not exist')) {
+        renderSetupWarning();
+        return;
+      }
+      showToast('❌ Erro ao buscar relatórios: ' + error.message);
+      renderEmptyState();
+      return;
+    }
+
+    reportData = data || [];
+    
+    if (reportData.length === 0) {
+      renderEmptyState("Nenhum dado financeiro encontrado ainda.");
+      return;
+    }
+
+    // Agrupar por mês
+    groupedData = {};
+    reportData.forEach(row => {
+      if (!groupedData[row.report_month]) {
+        groupedData[row.report_month] = [];
+      }
+      groupedData[row.report_month].push(row);
+    });
+
+    // Pega as chaves (meses) e ordena decrescente (ex: 2026-06, 2026-05...)
+    const months = Object.keys(groupedData).sort((a, b) => b.localeCompare(a));
+    
+    // Seleciona o primeiro mês por padrão
+    currentMonth = months[0];
+
+    renderTabs(months);
+    renderGrid(currentMonth);
+
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Ocorreu um erro inesperado.');
+  }
+}
+
+function renderTabs(months) {
+  const container = document.getElementById('monthsTabs');
+  container.innerHTML = months.map(m => {
+    const activeClass = m === currentMonth ? 'active' : '';
+    const label = formatMonthLabel(m);
+    return `<button class="tab-btn ${activeClass}" onclick="selectMonth('${m}')">${label}</button>`;
+  }).join('');
+}
+
+function selectMonth(m) {
+  currentMonth = m;
+  const buttons = document.querySelectorAll('.tab-btn');
+  buttons.forEach(btn => btn.classList.remove('active'));
+  // Marca o botão clicado
+  event.currentTarget.classList.add('active');
+  
+  renderGrid(currentMonth);
+}
+
+function renderGrid(month) {
+  const grid = document.getElementById('reportsGrid');
+  const days = groupedData[month] || [];
+  
+  if (days.length === 0) {
+    renderEmptyState("Sem dados para este mês.");
+    return;
+  }
+
+  // Monta HTML de cada dia
+  grid.innerHTML = days.map(day => {
+    // day.report_date: "2026-06-24"
+    const dataFormatada = formatDate(day.report_date);
+    
+    return `
+      <div class="day-card">
+        <div class="day-header">
+          <div class="day-title">${dataFormatada}</div>
+          <div class="day-badge">Concluído</div>
+        </div>
+        <div class="day-stats">
+          <div class="stat-item highlight">
+            <span class="stat-item-label">Faturamento Total do Dia</span>
+            <span class="stat-item-value">${formatBRL(day.total_sales)}</span>
+          </div>
+          <div class="stat-item highlight-green">
+            <span class="stat-item-label">Total em Pedidos de Entrega</span>
+            <span class="stat-item-value">${formatBRL(day.total_delivery_sales)}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-item-label">Total de Taxas de Entrega</span>
+            <span class="stat-item-value">${formatBRL(day.total_delivery_fees)}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-item-label">Quantidade de Entregas</span>
+            <span class="stat-item-value" style="color:var(--ash)">📦 ${day.total_deliveries}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderEmptyState(msg = "Nenhum relatório encontrado.") {
+  const grid = document.getElementById('reportsGrid');
+  document.getElementById('monthsTabs').innerHTML = '';
+  grid.innerHTML = `
+    <div class="empty-state">
+      <div class="icon">📉</div>
+      <p>${msg}</p>
+    </div>
+  `;
+}
+
+function renderSetupWarning() {
+  const grid = document.getElementById('reportsGrid');
+  document.getElementById('monthsTabs').innerHTML = '';
+  grid.innerHTML = `
+    <div class="empty-state">
+      <div class="icon">⚠️</div>
+      <h3 style="color:#fff; font-family:'Barlow Condensed',sans-serif; font-size:1.5rem; margin-bottom:0.5rem">Configuração Pendente</h3>
+      <p style="margin-bottom:1rem">A função de banco de dados para relatórios não foi encontrada.</p>
+      <p style="font-size:0.9rem; color:var(--fire); font-weight:600;">Por favor, execute o script <code>relatorios_setup.sql</code> no SQL Editor do Supabase.</p>
+    </div>
+  `;
+}
+
+// Iniciar
+window.addEventListener('DOMContentLoaded', checkAccess);
+
+</script>
+</body>
+</html>

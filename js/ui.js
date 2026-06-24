@@ -260,7 +260,7 @@ async function renderOrders() {
       const { data, error } = await supabase
         .from('orders')
         .select(`
-          id, created_at, status, total,
+          id, created_at, status, total, order_number,
           order_items(name, quantity)
         `)
         .eq('user_id', currentUser.id)
@@ -270,7 +270,7 @@ async function renderOrders() {
       
       ordersToRender = data.map(o => ({
         id: o.id,
-        num: String(o.id).substring(0, 4).toUpperCase(),
+        num: o.order_number ? String(o.order_number).padStart(3, '0') : String(o.id).substring(0, 4).toUpperCase(),
         date: new Date(o.created_at).toLocaleString('pt-BR'),
         items: (o.order_items || []).map(i => ({ qty: i.quantity, name: i.name || '?' })),
         total: fmtPrice(Number(o.total || 0)),
@@ -287,7 +287,7 @@ async function renderOrders() {
     const raw = JSON.parse(localStorage.getItem('ciOrders') || '[]');
     ordersToRender = [...raw].reverse().map(o => ({
       id: o.id,
-      num: o.num || String(o.id).substring(0, 4).toUpperCase(),
+      num: o.num || (o.order_number ? String(o.order_number).padStart(3, '0') : String(o.id).substring(0, 4).toUpperCase()),
       date: o.date || '',
       items: (o.order_items || []).map(i => ({ qty: i.quantity, name: i.item_name || '?' })),
       total: fmtPrice(Number(o.total_amount || 0)),
